@@ -80,7 +80,7 @@ function renderFormatCards() {
         // 标准浮点
         'fp64', 'fp32', 'fp16',
         // AI 专用
-        'tf32', 'bf16', 'fp8_e4m3', 'fp8_e5m2',
+        'tf32', 'bf16', 'fp8_e4m3', 'fp8_e5m2', 'fp6_e3m2', 'fp6_e2m3', 'nvfp4',
         // 量化格式
         'int16', 'int8', 'int4', 'int1',
         'fp4', 'nf4', 'mxfp4',
@@ -251,7 +251,7 @@ function renderHardwareMatrix() {
     html += '</tr></thead><tbody>';
 
     // 行：主要格式
-    const mainFormats = ['fp64', 'fp32', 'tf32', 'bf16', 'fp16', 'fp8_e4m3', 'fp8_e5m2', 'int8', 'int4'];
+    const mainFormats = ['fp64', 'fp32', 'tf32', 'bf16', 'fp16', 'fp8_e4m3', 'fp8_e5m2', 'fp6_e3m2', 'fp6_e2m3', 'nvfp4', 'fp4', 'int8', 'int4'];
 
     mainFormats.forEach(formatId => {
         const format = formatsData.find(f => f.id === formatId);

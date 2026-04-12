@@ -20,10 +20,12 @@
                         <span class="icon">🏗️</span>
                         <span>NV 微架构梳理</span>
                     </li>
+                    <!--
                     <li class="nav-item" data-section="tensor-core">
                         <span class="icon">🧮</span>
                         <span>Tensor Core</span>
                     </li>
+                    -->
                 </ul>
             </div>
             <div class="nav-section">
@@ -33,10 +35,12 @@
                         <span class="icon">🔢</span>
                         <span>数据精度格式</span>
                     </li>
+                    <!--
                     <li class="nav-item" data-section="paper-fp8-dot4">
                         <span class="icon">📄</span>
                         <span>FP8 融合点积</span>
                     </li>
+                    -->
                 </ul>
             </div>
         </nav>
@@ -950,6 +954,7 @@
                                     <ul class="arch-list">
                                     <li><strong>里程碑架构。</strong></li>
                                     <li><strong>Tensor Core 1.0</strong>：每个 SM 8 个（4 × 2），每个 TC 每周期执行 4×4×4 GEMM（FP16 输入，FP32 累加），等效 64 个 FP32 ALU。</li>
+                                    <li><strong>NVLink 2.0</strong></li>
                                     <li><strong>CUDA Core 拆分</strong>：不再是统一的 FPU+ALU，而是独立的 FP32 Core 和 INT32 Core。优势：<strong>两者可以同时执行</strong>，混合运算吞吐翻倍。</li>
                                     <li><strong>独立线程调度</strong>：每个线程拥有独立 PC 和调用栈</li>
                                     <li>Warp Scheduler 变为 1:1 对应 Dispatch Unit（之前是 1:2），并增加 L0 ICache。</li>
@@ -1090,6 +1095,7 @@
                                     <li>数量从 8 减半到 4，但<strong>每个吞吐量翻 4 倍</strong>，总吞吐翻倍。</li>
                                     <li>数据类型大幅扩展：FP16、BF16、TF32、FP64、INT8、INT4、Binary。</li>
                                     </ul>
+                                    <li><strong>NVLikn 3.0</strong></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1271,6 +1277,7 @@
                                     <li><strong>Tensor Memory Accelerator (TMA)：</strong>异步 1D-5D 张量搬运，解放计算线程。</li>
                                     <li><strong>DPX 指令集：</strong>动态规划算法加速（Smith-Waterman 等），最高 13x 提速。</li>
                                     <li><strong>H100 SXM5</strong>：132 SM，16,896 FP32 Core，528 TC，80GB HBM3（3 TB/s），50MB L2，800 亿晶体管，TSMC N4。</li>
+                                    <li><strong>NVLink 4.0</strong></li>
                                     </ul>
                                 </div>
                             </div>
@@ -1323,18 +1330,10 @@
                                 <div class="arch-notes">
                                     <p><strong>双芯片封装，2080 亿晶体管。</strong>INT32 和 FP32 执行路径统一，INT32 Core 数量与 FP32 持平。</p>
                                     <ul class="arch-list">
-                                    <li><strong>第 5 代 Tensor Core：</strong>全新 FP4（e2m1）和 FP6（e3m2 / e2m3）支持。FP4 吞吐 7,702 TFLOPS，FP8 吞吐 3,851 TFLOPS（B200）。引入 <code>tcgen05.mma</code> 单线程 tensor 指令，替代 warp 级 MMA，延迟从 32 cycles 降至 11 cycles。</li>
-                                    </ul>
-                                    <ul class="arch-list">
+                                    <li><strong>Tensor Core 5.0：</strong>全新 FP4（e2m1）和 FP6（e3m2 / e2m3）支持。FP4 吞吐 7,702 TFLOPS，FP8 吞吐 3,851 TFLOPS（B200）。引入 <code>tcgen05.mma</code> 单线程 tensor 指令，替代 warp 级 MMA，延迟从 32 cycles 降至 11 cycles。</li>
                                     <li><strong>Tensor Memory (TMEM)：</strong>全新的 256KB 专用 Tensor Core 存储，512 列 × 128 lane 的 2D 阵列。读带宽 16 TB/s，写带宽 8 TB/s（每 SM）。缓存未命中延迟降低 58%。</li>
-                                    </ul>
-                                    <ul class="arch-list">
                                     <li><strong>硬件解压引擎：</strong>原生支持 LZ4、Snappy、Zstd、GZIP 解压。</li>
-                                    </ul>
-                                    <ul class="arch-list">
                                     <li><strong>B200</strong>：148 SM，192GB HBM3e。<strong>GB202</strong>：192 SM，24,576 FP32 Core，TSMC N4P。</li>
-                                    </ul>
-                                    <ul class="arch-list">
                                     <li><strong>LLM 性能：</strong>Mistral-7B FP8 推理 78,400 tok/s（1.59x vs H200），FP4 达 112,800 tok/s。</li>
                                     </ul>
                                 </div>
@@ -1360,23 +1359,13 @@
                                 <div class="arch-notes">
                                     <ul class="arch-list">
                                     <li><strong>下一代数据中心平台，预计 2026 下半年。</strong></li>
-                                    </ul>
-                                    <ul class="arch-list">
-                                    <li><strong>第 6 代 Tensor Core：</strong>支持 FP4/FP6/FP8/FP16/BF16/TF32/FP32/FP64。<strong>第 3 代 Transformer Engine</strong>：硬件自适应压缩 + 跨层动态精度选择 + 双级微块缩放（NVFP4）。</li>
-                                    </ul>
-                                    <ul class="arch-list">
+                                    <li><strong>Tensor Core 6.0：</strong>支持 FP4/FP6/FP8/FP16/BF16/TF32/FP32/FP64。</li>
+                                    <li><strong>第 3 代 Transformer Engine</strong>：硬件自适应压缩 + 跨层动态精度选择 + 双级微块缩放（NVFP4）。</li>
                                     <li><strong>HBM4 显存：</strong>288GB，8 个堆叠，带宽 22 TB/s（Blackwell 的 2.8 倍）。</li>
-                                    </ul>
-                                    <ul class="arch-list">
-                                    <li><strong>NVLink 6：</strong>每 GPU 双向 3.6 TB/s（NVLink 5 的 2 倍）。</li>
-                                    </ul>
-                                    <ul class="arch-list">
+                                    <li><strong>NVLink 6.0：</strong>每 GPU 双向 3.6 TB/s（NVLink 5.0 的 2 倍）。</li>
                                     <li><strong>FP4 算力：</strong>50 PFLOPS（Blackwell 20 PFLOPS 的 2.5 倍）。</li>
-                                    </ul>
-                                    <ul class="arch-list">
                                     <li><strong>Vera Rubin NVL72 系统：</strong>72 GPU 聚合 FP4 推理 3,600 PFLOPS，NVLink 聚合带宽 260 TB/s。</li>
                                     </ul>
-                                    <p>TDP 1,800-2,300W。</p>
                                 </div>
                             </div>
                             <div class="arch-figure">
