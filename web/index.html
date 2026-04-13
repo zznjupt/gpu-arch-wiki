@@ -685,15 +685,18 @@
                             <tr><td style="text-align:left;font-weight:600">Maxwell</td><td>2014</td><td>GM204</td><td>16</td><td>4</td><td>-</td><td>128</td><td>-</td><td>-</td><td>-</td><td>-</td><td>4</td><td>8</td><td>32</td><td>32</td><td>-</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Pascal</td><td>2016</td><td>GP100</td><td>60</td><td>6</td><td>5</td><td>64</td><td>-</td><td>-</td><td>-</td><td>32</td><td>2</td><td>4</td><td>16</td><td>16</td><td>-</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Volta</td><td>2017</td><td>GV100</td><td>84</td><td>6</td><td>7</td><td>-</td><td>-</td><td>64</td><td>64</td><td>32</td><td>4</td><td>4</td><td>32</td><td>16</td><td>8 (1th)</td></tr>
-                            <tr><td style="text-align:left;font-weight:600">Turing</td><td>2018</td><td>TU102</td><td>72</td><td>6</td><td>6</td><td>-</td><td>-</td><td>64</td><td>64</td><td>-/2</td><td>4</td><td>4</td><td>16</td><td>16</td><td>8 (2th)</td></tr>
+                            <tr><td style="text-align:left;font-weight:600">Turing</td><td>2018</td><td>TU102</td><td>72</td><td>6</td><td>6</td><td>-</td><td>-</td><td>64</td><td>64</td><td>2*</td><td>4</td><td>4</td><td>16</td><td>16</td><td>8 (2th)</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Ampere</td><td>2020</td><td>GA100</td><td>128</td><td>8</td><td>8</td><td>-</td><td>-</td><td>64</td><td>64</td><td>32</td><td>4</td><td>4</td><td>32</td><td>16</td><td>4 (3th)</td></tr>
-                            <tr><td style="text-align:left;font-weight:600">Ampere</td><td>2020</td><td>GA102</td><td>84</td><td>7</td><td>6</td><td>-</td><td>64</td><td>-</td><td>64</td><td>-/2</td><td>4</td><td>4</td><td>16</td><td>16</td><td>4 (3th)</td></tr>
-                            <tr><td style="text-align:left;font-weight:600">Ada</td><td>2022</td><td>AD102</td><td>144</td><td>12</td><td>6</td><td>-</td><td>64</td><td>-</td><td>64</td><td>-/2</td><td>4</td><td>4</td><td>16</td><td>16</td><td>4 (4th)</td></tr>
+                            <tr><td style="text-align:left;font-weight:600">Ampere</td><td>2020</td><td>GA102</td><td>84</td><td>7</td><td>6</td><td>-</td><td>64</td><td>-</td><td>64</td><td>2*</td><td>4</td><td>4</td><td>16</td><td>16</td><td>4 (3th)</td></tr>
+                            <tr><td style="text-align:left;font-weight:600">Ada</td><td>2022</td><td>AD102</td><td>144</td><td>12</td><td>6</td><td>-</td><td>64</td><td>-</td><td>64</td><td>2*</td><td>4</td><td>4</td><td>16</td><td>16</td><td>4 (4th)</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Hopper</td><td>2022</td><td>GH100</td><td>144</td><td>8</td><td>9</td><td>-</td><td>-</td><td>64</td><td>128</td><td>64</td><td>4</td><td>4</td><td>32</td><td>16</td><td>4 (4th)</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Blackwell</td><td>2024</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>4 (5th)</td></tr>
                             <tr><td style="text-align:left;font-weight:600">Rubin</td><td>2026</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>4 (6th)</td></tr>
                         </tbody>
                     </table>
+                    <div class="table-note" style="margin-top:12px;padding:12px;background:var(--bg-secondary);border-left:3px solid var(--accent-primary);border-radius:6px">
+                        <p style="margin:0;color:var(--text-secondary);font-size:13px">标注 <code>*</code> 的 FP64 值为消费级游戏卡（TU102, GA102, AD102），SM 中的 2 个 FP64 CUDA Core 一般处于屏蔽/禁用状态，实际通过 FP32 Core 以 1/32 或 1/64 吞吐率模拟执行。</p>
+                    </div>
                 </div>
 
                 <div class="page-toc" style="margin-top:24px">

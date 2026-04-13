@@ -418,35 +418,57 @@ def render_toc(archs, compare_title='微架构演进对比'):
 
 
 def render_compare_table(compare_md):
-    """将 markdown 表格转为 HTML table"""
+    """将 markdown 表格转为 HTML table + 后续注释"""
     lines = [l.strip() for l in compare_md.strip().split('\n') if l.strip()]
     if len(lines) < 3:
         return ''
 
-    # Header
-    headers = [c.strip() for c in lines[0].split('|') if c.strip()]
-    # Skip separator line (lines[1])
-    # Data rows
+    # 分离表格和后续注释
+    table_lines = []
+    note_lines = []
+    in_table = True
+    for line in lines:
+        if in_table and line.startswith('|'):
+            table_lines.append(line)
+        else:
+            in_table = False
+            note_lines.append(line)
+
+    # 渲染表格
+    headers = [c.strip() for c in table_lines[0].split('|') if c.strip()]
     rows = []
-    for line in lines[2:]:
+    for line in table_lines[2:]:  # 跳过分隔线
         cells = [c.strip() for c in line.split('|') if c.strip()]
         rows.append(cells)
 
     html = '<table class="hardware-matrix">\n'
     html += '                        <thead>\n                            <tr>\n'
     for h in headers:
-        html += f'                                <th>{h}</th>\n'
+        html += f'                                <th>{inline_md(h)}</th>\n'
     html += '                            </tr>\n                        </thead>\n'
     html += '                        <tbody>\n'
     for row in rows:
         html += '                            <tr>'
         for j, cell in enumerate(row):
+            cell_html = inline_md(cell)
             if j == 0:
-                html += f'<td style="text-align:left;font-weight:600">{cell}</td>'
+                html += f'<td style="text-align:left;font-weight:600">{cell_html}</td>'
             else:
-                html += f'<td>{cell}</td>'
+                html += f'<td>{cell_html}</td>'
         html += '</tr>\n'
     html += '                        </tbody>\n                    </table>'
+
+    # 渲染注释（支持 > blockquote）
+    if note_lines:
+        html += '\n                    <div class="table-note" style="margin-top:12px;padding:12px;background:var(--bg-secondary);border-left:3px solid var(--accent-primary);border-radius:6px">\n'
+        for line in note_lines:
+            if line.startswith('>'):
+                content = line[1:].strip()
+                html += f'                        <p style="margin:0;color:var(--text-secondary);font-size:13px">{inline_md(content)}</p>\n'
+            else:
+                html += f'                        <p style="margin:0;color:var(--text-secondary);font-size:13px">{inline_md(line)}</p>\n'
+        html += '                    </div>'
+
     return html
 
 
