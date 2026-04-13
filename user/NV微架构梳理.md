@@ -271,8 +271,8 @@ image: ampere_sm.png
 - **Tensor Core 3.0** 
   - 数量从 8 减半到 4，但**每个吞吐量翻 4 倍**，总吞吐翻倍。
   - 数据类型大幅扩展：FP16、BF16、TF32、FP64、INT8、INT4、Binary。
+  - 支持结构性稀疏矩阵。
 - **NVLink 3.0**
-- 结构性稀疏矩阵
 - **‌Multi-Instance GPU**‌（多实例 GPU，**MIG 1.0**）
 
 ### 存储层次
