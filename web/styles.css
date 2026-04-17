@@ -102,6 +102,80 @@ html {
     font-size: 18px;
 }
 
+.arch-nav-item {
+    position: relative;
+}
+
+.arch-nav-item .icon {
+    position: relative;
+    width: 18px;
+    height: 22px;
+    flex: 0 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0;
+}
+
+.arch-nav-item .icon::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -15px;
+    bottom: -15px;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.12) 14%,
+        rgba(255, 255, 255, 0.12) 86%,
+        transparent 100%
+    );
+}
+
+.arch-nav-item--start .icon::before {
+    top: 50%;
+}
+
+.arch-nav-item--end .icon::before {
+    bottom: 50%;
+}
+
+.arch-nav-item .icon::after {
+    content: "";
+    position: relative;
+    z-index: 1;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--nav-accent);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 0 0 4px var(--nav-accent-soft);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.arch-nav-item--compare .icon::after {
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0 18%, transparent 18% 100%),
+        linear-gradient(135deg, var(--nav-accent), rgba(255, 255, 255, 0.18));
+    box-shadow: 0 0 0 4px var(--nav-accent-soft);
+}
+
+.arch-nav-item.active {
+    color: var(--nav-accent);
+    border-left-color: var(--nav-accent);
+}
+
+.arch-nav-item:hover .icon::after,
+.arch-nav-item.active .icon::after {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 5px var(--nav-accent-soft), 0 0 18px var(--nav-accent-soft);
+}
+
 .nav-item.disabled {
     opacity: 0.4;
     cursor: not-allowed;

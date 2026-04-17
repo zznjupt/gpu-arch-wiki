@@ -16,10 +16,60 @@
             <div class="nav-section">
                 <div class="nav-category">GPU 微架构</div>
                 <ul class="nav-menu">
-                    <li class="nav-item active" data-section="nv-arch-overview">
-                        <span class="icon">🏗️</span>
-                        <span>NV 微架构梳理</span>
+                    <!-- ARCH_NAV_START -->
+                    <li class="nav-item arch-nav-item arch-nav-item--compare arch-nav-item--start active" data-section="nv-arch-0-table" style="--nav-accent: hsl(192 88% 64%); --nav-accent-soft: hsl(192 88% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>微架构发展与比较</span>
                     </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-1-fermi" style="--nav-accent: hsl(194 84% 64%); --nav-accent-soft: hsl(194 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Fermi</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-1-kepler" style="--nav-accent: hsl(178 84% 64%); --nav-accent-soft: hsl(178 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Kepler</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-1-maxwell" style="--nav-accent: hsl(162 84% 64%); --nav-accent-soft: hsl(162 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Maxwell</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-1-pascal" style="--nav-accent: hsl(146 84% 64%); --nav-accent-soft: hsl(146 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Pascal</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-2-volta" style="--nav-accent: hsl(130 84% 64%); --nav-accent-soft: hsl(130 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Volta</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-3-turing" style="--nav-accent: hsl(114 84% 64%); --nav-accent-soft: hsl(114 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Turing</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-4-ampere" style="--nav-accent: hsl(98 84% 64%); --nav-accent-soft: hsl(98 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Ampere (GA100)</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-4-ga102" style="--nav-accent: hsl(82 84% 64%); --nav-accent-soft: hsl(82 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Ampere (GA102)</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-5-ada" style="--nav-accent: hsl(66 84% 64%); --nav-accent-soft: hsl(66 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Ada Lovelace</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-6-hopper" style="--nav-accent: hsl(50 84% 64%); --nav-accent-soft: hsl(50 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Hopper</span>
+                    </li>
+                    <li class="nav-item arch-nav-item" data-section="nv-arch-7-blackwell" style="--nav-accent: hsl(34 84% 64%); --nav-accent-soft: hsl(34 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Blackwell</span>
+                    </li>
+                    <li class="nav-item arch-nav-item arch-nav-item--end" data-section="nv-arch-8-rubin" style="--nav-accent: hsl(18 84% 64%); --nav-accent-soft: hsl(18 84% 64% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>Rubin</span>
+                    </li>
+                    <!-- ARCH_NAV_END -->
                     <!--
                     <li class="nav-item" data-section="tensor-core">
                         <span class="icon">🧮</span>
@@ -653,12 +703,12 @@
             </section>
 
             <!-- NV 微架构梳理 -->
-            <section id="nv-arch-overview" class="content-section active">
-                <h1 class="section-title">NVIDIA 微架构演进</h1>
+            <!-- ARCH_SECTIONS_START -->
+            <section id="nv-arch-0-table" class="content-section active">
+                <h1 class="section-title">微架构发展与比较</h1>
 
                 <h2 class="subsection-title" id="arch-compare">Nvidia GPGPU 微架构演进</h2>
-                <div class="matrix-container">
-                                        <div class="matrix-container">
+                    <div class="matrix-container">
 <table class="hardware-matrix">
                         <thead>
                             <tr>
@@ -735,27 +785,11 @@
                         <p style="margin:0;color:var(--text-secondary);font-size:13px">- <strong>Memory Interface (内存接口)</strong>: 连接到外部 GDDR/HBM 内存</p>
                     </div>
                 </div>
+            
+            </section>
 
-                </div>
-
-                <div class="page-toc" style="margin-top:24px">
-                    <h3>目录</h3>
-                    <ul>
-                        <li><a href="#arch-compare">Nvidia GPGPU 微架构演进</a></li>
-                        <li><a href="#arch-fermi">Fermi (2010)</a></li>
-                        <li><a href="#arch-kepler">Kepler (2012)</a></li>
-                        <li><a href="#arch-maxwell">Maxwell (2014)</a></li>
-                        <li><a href="#arch-pascal">Pascal (2016)</a></li>
-                        <li><a href="#arch-volta">Volta (2017)</a></li>
-                        <li><a href="#arch-turing">Turing (2018)</a></li>
-                        <li><a href="#arch-ampere-ga100">Ampere (GA100) (2020)</a></li>
-                        <li><a href="#arch-ampere-ga102">Ampere (GA102) (2020)</a></li>
-                        <li><a href="#arch-ada">Ada Lovelace (2022)</a></li>
-                        <li><a href="#arch-hopper">Hopper (2022)</a></li>
-                        <li><a href="#arch-blackwell">Blackwell (2024)</a></li>
-                        <li><a href="#arch-rubin">Rubin (2026 (预计))</a></li>
-                    </ul>
-                </div>
+            <section id="nv-arch-1-fermi" class="content-section">
+                <h1 class="section-title">Fermi</h1>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -809,12 +843,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-1-kepler" class="content-section">
+                <h1 class="section-title">Kepler</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-kepler">
                         <div class="arch-gen-header">
                             <h2>Kepler</h2>
                             <span class="paper-tag">2012</span>
                             <span class="paper-tag">SMX</span>
                             <span class="paper-tag">FP64</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/gk210_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -846,8 +893,7 @@
 
                         <h3 class="arch-sub-title">Kepler 规模+存储层次 (GK210)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gk210_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>Kepler 引入了一个额外的 48KB 只读 Data Cache，用于保存只读的数据，可以提供相比 Shared/L1 cache 更高的性能。</li>
                                     <li>根据 <a href="https://arxiv.org/pdf/1804.06826.pdf" target="_blank">Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking</a>，Kepler 架构每个周期每个 SM 可以读取 256 字节的数据，也就是说，每个 LD/ST unit 每周期可以读取 4 字节的数据。</li>
                                     </ul>
@@ -864,12 +910,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-1-maxwell" class="content-section">
+                <h1 class="section-title">Maxwell</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-maxwell">
                         <div class="arch-gen-header">
                             <h2>Maxwell</h2>
                             <span class="paper-tag">2014</span>
                             <span class="paper-tag">SMM</span>
                             <span class="paper-tag">能效比优先</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/gm204_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -896,8 +955,7 @@
 
                         <h3 class="arch-sub-title">Maxwell 规模+存储层次 (gm204，最大规模芯片 gm200 无官方文档)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gm204_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>Maxwell 架构的 L1 缓存和 Shared Memory 不再共享，Shared Memory 独占 96KB，然后 L1 缓存和 Texture 缓存共享空间。</li>
                                     <li>根据 <a href="https://arxiv.org/pdf/1804.06826.pdf" target="_blank">Dissecting the NVIDIA Volta GPU Architecture via Microbenchmarking</a>，Maxwell 架构每个周期每个 SM 可以读取 256 字节的数据，也就是说，每个 LD/ST unit 每周期可以读取 4 字节的数据。</li>
                                     </ul>
@@ -915,12 +973,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-1-pascal" class="content-section">
+                <h1 class="section-title">Pascal</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-pascal">
                         <div class="arch-gen-header">
                             <h2>Pascal</h2>
                             <span class="paper-tag">2016</span>
                             <span class="paper-tag">FP16</span>
                             <span class="paper-tag">NVLink</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/gp100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -950,8 +1021,7 @@
 
                         <h3 class="arch-sub-title">Pascal 规模+存储层次 (GP100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gp100_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>支持 Unified Memory，使得 CPU 和 GPU 可以共享虚拟地址空间，让数据自动进行迁移。</li>
                                     <li>8 个 512 位的内存控制器，每个内存控制器附带 512 KB L2 缓存，总共有 4096 KB 的 L2 缓存。</li>
                                     <li>每两个内存控制器为一组，连接到 4 个 1024 位的 HBM2 内存。</li>
@@ -976,12 +1046,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-2-volta" class="content-section">
+                <h1 class="section-title">Volta</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-volta">
                         <div class="arch-gen-header">
                             <h2>Volta</h2>
                             <span class="paper-tag">2017</span>
                             <span class="paper-tag">V100</span>
                             <span class="paper-tag">Tensor Core 诞生</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/gv100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1015,8 +1098,7 @@
 
                         <h3 class="arch-sub-title">Volta 规模+存储层次 (GV100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gv100_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>在 Volta 架构中，L1 Data Cache 和 Shared memory 再次共享。</li>
                                     <li>引入了 L0 Instruction Cache，每个 Processing Block 内部都有一个。</li>
                                     <li>8 个 512 位的内存控制器。</li>
@@ -1058,12 +1140,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-3-turing" class="content-section">
+                <h1 class="section-title">Turing</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-turing">
                         <div class="arch-gen-header">
                             <h2>Turing</h2>
                             <span class="paper-tag">2018</span>
                             <span class="paper-tag">RTX 20 系列</span>
                             <span class="paper-tag">RT Core</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/tu102_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1091,8 +1186,7 @@
 
                         <h3 class="arch-sub-title">Turing 规模+存储层次 (TU102)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/tu102_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>12 个 32-bit GDDR6 memory controller</li>
                                     <li>Turing 架构的每 TPC 的 L1 带宽是 Pascal 架构的两倍。</li>
                                     </ul>
@@ -1115,12 +1209,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-4-ampere" class="content-section">
+                <h1 class="section-title">Ampere (GA100)</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-ampere-ga100">
                         <div class="arch-gen-header">
                             <h2>Ampere (GA100)</h2>
                             <span class="paper-tag">2020</span>
                             <span class="paper-tag">A100</span>
                             <span class="paper-tag">稀疏 Tensor Core</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/ga100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1155,8 +1262,7 @@
 
                         <h3 class="arch-sub-title">Ampere (GA100) 规模+存储层次</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ga100_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>6 个 HBM2 stack，对应 12 个 512-bit memory controller。</li>
                                     <li>每个 SM 的 L1 Data Cache/Shared Memory 总量增加到了 192 KB。</li>
                                     <li>A100 GPU 有 40 MB 的 L2 缓存，分为两个 partition。</li>
@@ -1189,11 +1295,24 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-4-ga102" class="content-section">
+                <h1 class="section-title">Ampere (GA102)</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-ampere-ga102">
                         <div class="arch-gen-header">
                             <h2>Ampere (GA102)</h2>
                             <span class="paper-tag">2020</span>
                             <span class="paper-tag">RTX 30</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/ga102_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1220,8 +1339,7 @@
 
                         <h3 class="arch-sub-title">Ampere (GA102) 规模+存储层次</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ga102_full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>12 个 32-bit memory controller，一共 384 位。</li>
                                     <li>12 组 512KB 的 L2 缓存，每组对应一个内存控制器，L2 一共是 6144 KB。</li>
                                     <li>GA102 的 shared memory 带宽是每个 SM 每个时钟 128 字节，而 Turing 架构的这个值是 64。</li>
@@ -1246,12 +1364,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-5-ada" class="content-section">
+                <h1 class="section-title">Ada Lovelace</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-ada">
                         <div class="arch-gen-header">
                             <h2>Ada Lovelace</h2>
                             <span class="paper-tag">2022</span>
                             <span class="paper-tag">RTX 40 系列</span>
                             <span class="paper-tag">FP8 / DLSS 3</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/ad102-full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1282,8 +1413,7 @@
 
                         <h3 class="arch-sub-title">Ada Lovelace 规模+存储层次 (AD102)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ad102-full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>12 个 32-bit memory controller，一共 384 位。</li>
                                     <li><strong>L2 缓存大幅扩容：</strong>，AD102 达 96MB（Ampere GA102 仅 6MB，16x 增长），显著减少显存访问。</li>
                                     </ul>
@@ -1299,12 +1429,25 @@
 
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-6-hopper" class="content-section">
+                <h1 class="section-title">Hopper</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-hopper">
                         <div class="arch-gen-header">
                             <h2>Hopper</h2>
                             <span class="paper-tag">2022</span>
                             <span class="paper-tag">H100 / H200</span>
                             <span class="paper-tag">Transformer Engine</span>
+                        </div>
+
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="full-width-figure"><img src="images/gh100-full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
@@ -1347,8 +1490,7 @@
 
                         <h3 class="arch-sub-title">Hopper 规模+存储层次 (GH100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gh100-full.png" alt="" style="max-width:100%; height:auto;"></div>
-                                    <ul class="arch-list">
+                            <ul class="arch-list">
                                     <li>Shared Memory + L1 扩大至 256KB。</li>
                                     <li>HBM3 DRAM，5 个 stack，10 个 512-bit memory controller，总共 80 GB 容量。（H100 SXM5 参数）</li>
                                     <li>完整版的 GH100 芯片有 60MB 的 L2 缓存，H100 有 50MB 的 L2 缓存。</li>
@@ -1372,6 +1514,15 @@
                         </div>
 
                     </div>
+
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-7-blackwell" class="content-section">
+                <h1 class="section-title">Blackwell</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
 
                     <div class="arch-gen" id="arch-blackwell">
                         <div class="arch-gen-header">
@@ -1410,6 +1561,15 @@
                         </div>
                     </div>
 
+                </div>
+            
+            </section>
+
+            <section id="nv-arch-8-rubin" class="content-section">
+                <h1 class="section-title">Rubin</h1>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
                     <div class="arch-gen" id="arch-rubin">
                         <div class="arch-gen-header">
                             <h2>Rubin</h2>
@@ -1443,6 +1603,7 @@
                 </div>
             
             </section>
+            <!-- ARCH_SECTIONS_END -->
 
             <!-- Tensor Core -->
             <section id="tensor-core" class="content-section">

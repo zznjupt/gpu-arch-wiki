@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-build_arch.py — 从 NV微架构梳理.md 生成 HTML，替换 web/index.html 中的 NV 微架构 section。
+build_arch.py — 从拆分后的 Markdown 生成 HTML，替换 web/index.html 中的 NV 微架构导航和 section。
+优先读取形如 0.xxx.md 的拆分文件；若不存在，则回退到 NV微架构梳理.md 单文件模式。
 用法：python3 user/build_arch.py
 """
 
@@ -10,10 +11,16 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 ROOT = SCRIPT_DIR.parent
-MD_FILE = SCRIPT_DIR / 'NV微架构梳理.md'
+LEGACY_MD_FILE = SCRIPT_DIR / 'NV微架构梳理.md'
 HTML_FILE = ROOT / 'web' / 'index.html'
 SRC_IMAGES = SCRIPT_DIR / 'images'
 DST_IMAGES = ROOT / 'web' / 'images'
+
+SPLIT_MD_RE = re.compile(r'^(?P<order>\d+)\.(?P<slug>.+)\.md$')
+NAV_START_MARKER = '<!-- ARCH_NAV_START -->'
+NAV_END_MARKER = '<!-- ARCH_NAV_END -->'
+SECTIONS_START_MARKER = '<!-- ARCH_SECTIONS_START -->'
+SECTIONS_END_MARKER = '<!-- ARCH_SECTIONS_END -->'
 
 # ── Markdown 解析 ──────────────────────────────────────────
 
@@ -64,6 +71,127 @@ def parse_md(text):
             architectures.append(arch)
 
     return architectures, compare_md, compare_title
+
+
+def slugify(text):
+    """将任意文本转为适合 HTML id 的 slug。"""
+    slug = re.sub(r'[^a-zA-Z0-9]+', '-', text).strip('-').lower()
+    return slug or 'section'
+
+
+def humanize_slug(slug):
+    """将文件名中的 slug 转为导航显示文案。"""
+    parts = [part for part in re.split(r'[-_]+', slug) if part]
+    if not parts:
+        return 'NV 微架构'
+    return '-'.join(part[:1].upper() + part[1:] for part in parts)
+
+
+def build_page_label(slug, archs):
+    """根据拆分文件内容生成导航/页面标题。"""
+    if slug == 'table':
+        return '微架构发展与比较'
+    if len(archs) == 1:
+        return archs[0]['name']
+    return humanize_slug(slug)
+
+
+def make_page(source, order, slug, nav_label, section_title, section_id, icon, archs, compare_md, compare_title):
+    """构造单个页面配置。"""
+    return {
+        'source': source,
+        'order': order,
+        'slug': slug,
+        'nav_label': nav_label,
+        'section_title': section_title,
+        'section_id': section_id,
+        'icon': icon,
+        'archs': archs,
+        'compare_md': compare_md,
+        'compare_title': compare_title,
+    }
+
+
+def expand_source_to_pages(source, order, slug, archs, compare_md, compare_title):
+    """将一个 Markdown 源展开为一个或多个页面。"""
+    pages = []
+
+    if compare_md:
+        compare_slug = 'table' if slug == 'overview' else slug
+        pages.append(make_page(
+            source=source,
+            order=order,
+            slug=compare_slug,
+            nav_label='微架构发展与比较',
+            section_title='微架构发展与比较',
+            section_id=f'nv-arch-{order}-{slugify(compare_slug)}',
+            icon='📊',
+            archs=[],
+            compare_md=compare_md,
+            compare_title=compare_title,
+        ))
+
+    if archs:
+        if len(archs) == 1:
+            arch = archs[0]
+            page_slug = slug if slug != 'overview' else slugify(arch['id'])
+            pages.append(make_page(
+                source=source,
+                order=order,
+                slug=page_slug,
+                nav_label=arch['name'],
+                section_title=arch['name'],
+                section_id=f'nv-arch-{order}-{slugify(page_slug)}',
+                icon='🏗️',
+                archs=[arch],
+                compare_md='',
+                compare_title='',
+            ))
+        else:
+            for arch in archs:
+                page_slug = f'{slug}-{slugify(arch["id"])}'
+                pages.append(make_page(
+                    source=source,
+                    order=order,
+                    slug=page_slug,
+                    nav_label=arch['name'],
+                    section_title=arch['name'],
+                    section_id=f'nv-arch-{order}-{slugify(page_slug)}',
+                    icon='🏗️',
+                    archs=[arch],
+                    compare_md='',
+                    compare_title='',
+                ))
+
+    return pages
+
+
+def discover_pages():
+    """发现需要生成的页面，优先使用拆分 md。"""
+    split_files = []
+    for path in SCRIPT_DIR.glob('*.md'):
+        if path.name == LEGACY_MD_FILE.name:
+            continue
+        match = SPLIT_MD_RE.match(path.name)
+        if not match:
+            continue
+        split_files.append((int(match.group('order')), match.group('slug'), path))
+
+    if split_files:
+        split_files.sort(key=lambda item: (item[0], item[1].lower()))
+        pages = []
+        for order, slug, path in split_files:
+            md_text = path.read_text(encoding='utf-8')
+            archs, compare_md, compare_title = parse_md(md_text)
+            pages.extend(expand_source_to_pages(path, order, slug, archs, compare_md, compare_title))
+        return pages
+
+    if not LEGACY_MD_FILE.exists():
+        raise RuntimeError('找不到拆分 Markdown，也找不到 user/NV微架构梳理.md')
+
+    md_text = LEGACY_MD_FILE.read_text(encoding='utf-8')
+    archs, compare_md, compare_title = parse_md(md_text)
+    return expand_source_to_pages(LEGACY_MD_FILE, 0, 'overview', archs, compare_md, compare_title)
 
 
 def parse_arch_block(block):
@@ -384,6 +512,20 @@ def render_extra_section(body):
     return html
 
 
+def is_promotable_top_full_image(body):
+    """判断一个 section 是否仅包含可提升到顶部的 full-image（_full/-full）。"""
+    lines = [line.strip() for line in body.split('\n') if line.strip()]
+    if not lines:
+        return False
+    image_match = re.match(r'^\[full-image:\s*(.+?)\s*\]$', lines[0])
+    if not image_match:
+        return False
+    image_name = image_match.group(1).strip().lower()
+    if not re.search(r'(?:_full|-full)\.[a-z0-9]+$', image_name):
+        return False
+    return len(lines) == 1 or (len(lines) == 2 and re.match(r'^\[caption:\s*.+?\s*\]$', lines[1]))
+
+
 def render_card(arch):
     """生成单个架构卡片 HTML"""
     # Tags
@@ -402,8 +544,27 @@ def render_card(arch):
     # Figure
     figure_html = render_figure(arch)
 
+    # 最前面的纯 full-image 段允许提升到卡片顶部，由 markdown 顺序驱动
+    top_sections = []
+    for sec in arch['sections']:
+        if sec['title'] in ('SM 配置', '说明'):
+            break
+        if is_promotable_top_full_image(sec['body']):
+            top_sections.append(sec)
+        else:
+            break
+
+    top_section_ids = {id(sec) for sec in top_sections}
+
     # Extra sections (beyond SM 配置 and 说明)
-    extra_sections = [s for s in arch['sections'] if s['title'] not in ('SM 配置', '说明')]
+    extra_sections = [
+        s for s in arch['sections']
+        if s['title'] not in ('SM 配置', '说明') and id(s) not in top_section_ids
+    ]
+    top_html = ''
+    for sec in top_sections:
+        top_html += '\n\n                        ' + render_extra_section(sec['body']).strip()
+
     extra_html = ''
     for sec in extra_sections:
         extra_html += f'\n\n                        <h3 class="arch-sub-title">{arch["name"]} {sec["title"]}</h3>\n'
@@ -413,7 +574,7 @@ def render_card(arch):
                         <div class="arch-gen-header">
                             <h2>{arch['name']}</h2>
                             <span class="paper-tag">{arch['year']}</span>{tag_html}
-                        </div>
+                        </div>{top_html}
                         <div class="arch-content-row">
                             <div class="arch-text">
                                 <div class="arch-sm-grid">
@@ -429,12 +590,13 @@ def render_card(arch):
     return html
 
 
-def render_toc(archs, compare_title='微架构演进对比'):
+def render_toc(archs, compare_title=None):
     """生成目录 HTML"""
     items = []
+    if compare_title:
+        items.append(f'                        <li><a href="#arch-compare">{compare_title}</a></li>')
     for a in archs:
         items.append(f'                        <li><a href="#{a["id"]}">{a["name"]} ({a["year"]})</a></li>')
-    items.insert(0, f'                        <li><a href="#arch-compare">{compare_title}</a></li>')
     return '\n'.join(items)
 
 
@@ -602,46 +764,111 @@ def render_compare_table(compare_md):
     return html
 
 
-def render_section(archs, compare_md, compare_title='微架构演进对比'):
+def render_section(section_title, archs, compare_md, compare_title='微架构演进对比'):
     """生成完整的 section 内容（不含 <section> 标签本身）"""
-    toc_html = render_toc(archs, compare_title)
-    cards_html = '\n\n'.join(render_card(a) for a in archs)
-    table_html = render_compare_table(compare_md)
+    parts = [f'                <h1 class="section-title">{section_title}</h1>']
 
-    return f'''
-                <h1 class="section-title">NVIDIA 微架构演进</h1>
-
+    toc_compare_title = compare_title if compare_md else None
+    if compare_md:
+        table_html = render_compare_table(compare_md)
+        parts.append(f'''
                 <h2 class="subsection-title" id="arch-compare">{compare_title}</h2>
-                <div class="matrix-container">
-                    {table_html}
-                </div>
+{table_html.rstrip()}
+            ''')
 
+    toc_count = len(archs) + (1 if toc_compare_title else 0)
+    if toc_count > 1:
+        toc_html = render_toc(archs, toc_compare_title)
+        parts.append(f'''
                 <div class="page-toc" style="margin-top:24px">
                     <h3>目录</h3>
                     <ul>
 {toc_html}
                     </ul>
                 </div>
+            ''')
 
+    if archs:
+        cards_html = '\n\n'.join(render_card(a) for a in archs)
+        parts.append(f'''
                 <div class="arch-timeline" style="margin-top:32px">
 
 {cards_html}
 
                 </div>
-            '''
+            ''')
+
+    return '\n'.join(parts)
+
+
+def render_nav_items(pages):
+    """生成 GPU 微架构导航列表。"""
+    arch_pages = [page for page in pages if page['archs']]
+    arch_total = len(arch_pages)
+    arch_index = 0
+    items = []
+    for index, page in enumerate(pages):
+        active = ' active' if index == 0 else ''
+        classes = ['nav-item', 'arch-nav-item']
+        if page['compare_md']:
+            classes.append('arch-nav-item--compare')
+            accent = 'hsl(192 88% 64%)'
+            accent_soft = 'hsl(192 88% 64% / 0.22)'
+        else:
+            progress = arch_index / max(arch_total - 1, 1) if arch_total else 0
+            hue = round(194 + (18 - 194) * progress)
+            accent = f'hsl({hue} 84% 64%)'
+            accent_soft = f'hsl({hue} 84% 64% / 0.22)'
+            arch_index += 1
+
+        if index == 0:
+            classes.append('arch-nav-item--start')
+        if index == len(pages) - 1:
+            classes.append('arch-nav-item--end')
+
+        class_attr = ' '.join(classes) + active
+        style_attr = f'--nav-accent: {accent}; --nav-accent-soft: {accent_soft};'
+        items.append(
+            f'                    <li class="{class_attr}" data-section="{page["section_id"]}" style="{style_attr}">\n'
+            f'                        <span class="icon" aria-hidden="true"></span>\n'
+            f'                        <span>{page["nav_label"]}</span>\n'
+            f'                    </li>'
+        )
+    return '\n'.join(items)
+
+
+def render_sections(pages):
+    """生成多个微架构 section。"""
+    sections = []
+    for index, page in enumerate(pages):
+        active = ' active' if index == 0 else ''
+        content = render_section(
+            page['section_title'],
+            page['archs'],
+            page['compare_md'],
+            page['compare_title'],
+        )
+        sections.append(
+            f'            <section id="{page["section_id"]}" class="content-section{active}">\n'
+            f'{content}\n'
+            f'            </section>'
+        )
+    return '\n\n'.join(sections)
 
 
 # ── HTML 替换 ──────────────────────────────────────────────
 
-def replace_section(html, new_content):
-    """替换 section#nv-arch-overview 的内部内容"""
-    # 匹配 <section id="nv-arch-overview" ...> 到对应的 </section>
-    pattern = r'(<section id="nv-arch-overview"[^>]*>)(.*?)(</section>)'
-    match = re.search(pattern, html, re.DOTALL)
+def replace_between_markers(html, start_marker, end_marker, new_content):
+    """替换两个标记之间的内容，保留标记本身。"""
+    pattern = re.compile(
+        rf'({re.escape(start_marker)})(.*?)(\n[ \t]*{re.escape(end_marker)})',
+        re.DOTALL,
+    )
+    match = pattern.search(html)
     if not match:
-        raise RuntimeError('找不到 section#nv-arch-overview')
+        raise RuntimeError(f'找不到标记: {start_marker} ... {end_marker}')
 
-    return html[:match.start(2)] + new_content + '\n            ' + html[match.end(2):]
+    return html[:match.end(1)] + '\n' + new_content.rstrip() + html[match.start(3):]
 
 
 # ── 图片同步 ──────────────────────────────────────────────
@@ -663,21 +890,26 @@ def sync_images():
 # ── 主流程 ────────────────────────────────────────────────
 
 def main():
-    print('读取 user/NV微架构梳理.md ...')
-    md_text = MD_FILE.read_text(encoding='utf-8')
+    print('发现 Markdown 页面 ...')
+    pages = discover_pages()
+    for page in pages:
+        print(f'  - {page["source"].name} -> {page["nav_label"]}')
 
-    print('解析 markdown ...')
-    archs, compare_md, compare_title = parse_md(md_text)
-    print(f'  找到 {len(archs)} 个架构')
+    total_archs = sum(len(page['archs']) for page in pages)
+    print(f'  共 {len(pages)} 个页面，{total_archs} 个架构卡片')
 
-    print('生成 HTML ...')
-    section_html = render_section(archs, compare_md, compare_title)
+    print('生成导航和 sections HTML ...')
+    nav_html = render_nav_items(pages)
+    sections_html = render_sections(pages)
 
     print('读取 web/index.html ...')
     html = HTML_FILE.read_text(encoding='utf-8')
 
-    print('替换 NV 微架构 section ...')
-    new_html = replace_section(html, section_html)
+    print('替换 NV 微架构导航 ...')
+    new_html = replace_between_markers(html, NAV_START_MARKER, NAV_END_MARKER, nav_html)
+
+    print('替换 NV 微架构 sections ...')
+    new_html = replace_between_markers(new_html, SECTIONS_START_MARKER, SECTIONS_END_MARKER, sections_html)
 
     print('写回 web/index.html ...')
     HTML_FILE.write_text(new_html, encoding='utf-8')
