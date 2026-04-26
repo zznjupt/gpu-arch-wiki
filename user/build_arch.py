@@ -5,6 +5,7 @@ build_arch.py — 从拆分后的 Markdown 生成 HTML，替换 web/index.html �
 用法：python3 user/build_arch.py
 """
 
+import html as html_lib
 import re
 import shutil
 from pathlib import Path
@@ -240,6 +241,20 @@ def inline_md(text):
     return text
 
 
+def render_code_block(language, code):
+    """渲染 Markdown fenced code block。"""
+    language = language.strip().split()[0] if language.strip() else ''
+    label = html_lib.escape(language.upper()) if language else 'CODE'
+    class_name = f' language-{slugify(language)}' if language else ''
+    escaped_code = html_lib.escape(code.rstrip())
+    return (
+        f'<div class="arch-code-block">'
+        f'<div class="arch-code-label">{label}</div>'
+        f'<pre><code class="{class_name.strip()}">{escaped_code}</code></pre>'
+        f'</div>'
+    )
+
+
 def parse_sm_config(body):
     """解析 SM 配置段为列表 [{label, value, highlight}]"""
     items = []
@@ -262,6 +277,27 @@ def notes_to_html(body):
 
     while i < len(lines):
         line = lines[i]
+
+        # fenced code block: ```python ... ```
+        code_fence = re.match(r'^```([^`]*)$', line.strip())
+        if code_fence:
+            if getattr(notes_to_html, '_in_sublist', False):
+                html_parts.append(f'</{notes_to_html._in_sublist}>')
+                notes_to_html._in_sublist = False
+            if in_list:
+                html_parts.append(f'</{in_list}>')
+                in_list = False
+
+            language = code_fence.group(1).strip()
+            code_lines = []
+            i += 1
+            while i < len(lines) and not re.match(r'^```\s*$', lines[i].strip()):
+                code_lines.append(lines[i])
+                i += 1
+            if i < len(lines):
+                i += 1
+            html_parts.append(render_code_block(language, '\n'.join(code_lines)))
+            continue
 
         # 双图: [images: a.png | b.png]
         img2 = re.match(r'^\[images:\s*(.+?)\s*\|\s*(.+?)\s*\]$', line)
@@ -499,7 +535,7 @@ def render_extra_section(body):
             i += 1
             continue
 
-        # 跳过独�� caption
+        # 跳过独立 caption
         if re.match(r'^\[captions?:', line):
             i += 1
             continue
@@ -567,8 +603,11 @@ def render_card(arch):
 
     extra_html = ''
     for sec in extra_sections:
-        extra_html += f'\n\n                        <h3 class="arch-sub-title">{arch["name"]} {sec["title"]}</h3>\n'
+        section_slug = slugify(sec['title'])
+        extra_html += f'\n\n                        <div class="arch-extra-section arch-extra-section--{section_slug}">\n'
+        extra_html += f'                            <h3 class="arch-sub-title">{arch["name"]} {sec["title"]}</h3>\n'
         extra_html += render_extra_section(sec['body'])
+        extra_html += '                        </div>\n'
 
     html = f'''                    <div class="arch-gen" id="{arch['id']}">
                         <div class="arch-gen-header">

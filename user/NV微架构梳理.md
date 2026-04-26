@@ -13,7 +13,7 @@
 | Ada       | 2022 | AD102 | 144     | 12  | 6   | -          | 64         | -     | 64   | 2    | 4     | 4     | 16    | 16  | 4 (4th)   |
 | Hopper    | 2022 | GH100 | 144     | 8   | 9   | -          | -          | 64    | 128  | 64   | 4     | 4     | 32    | 16  | 4 (4th)   |
 | Blackwell | 2024 | -     | -       | -   | -   | -          | -          | -     | -    | -    | -     | -     | -     | -   | 4 (5th)   |
-| Rubin     | 2026 | -     | -       | -   | -   | -          | -          | -     | -    | -    | -     | -     | -     | -   | 4 (6th)   |
+| Rubin     | 2026 | -     | -       | -   | -   | -          | -          | -     | -    | -    | -     | -     | -     | -   | Enhanced 5th |
 
 ---
 
@@ -500,14 +500,13 @@ tags: R100, HBM4
 ---
 
 ### SM 配置
-- Tensor Core: 4 (6th) [highlight]
+- Tensor Core: Enhanced 5th [highlight]
 
 ### 说明
 - **下一代数据中心平台，预计 2026 下半年。**
-- **Tensor Core 6.0：**支持 FP4/FP6/FP8/FP16/BF16/TF32/FP32/FP64。
+- **Tensor Core：**路线图强调增强的低精度 Tensor Core、NVFP4 和第三代 Transformer Engine。
 - **第 3 代 Transformer Engine**：硬件自适应压缩 + 跨层动态精度选择 + 双级微块缩放（NVFP4）。
 - **HBM4 显存：**288GB，8 个堆叠，带宽 22 TB/s（Blackwell 的 2.8 倍）。
 - **NVLink 6.0：**每 GPU 双向 3.6 TB/s（NVLink 5.0 的 2 倍）。
 - **FP4 算力：**50 PFLOPS（Blackwell 20 PFLOPS 的 2.5 倍）。
 - **Vera Rubin NVL72 系统：**72 GPU 聚合 FP4 推理 3,600 PFLOPS，NVLink 聚合带宽 260 TB/s。
-

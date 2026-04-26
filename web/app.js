@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderFormatCards();
     renderHardwareMatrix();
     initLightbox();
+    initCodeHighlighting();
 
     // 初始化当前 active section 的目录
     const activeSection = document.querySelector('.content-section.active');
@@ -12,6 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (toc) toc.classList.add('visible');
     }
 });
+
+// 静态架构页代码块高亮
+function initCodeHighlighting() {
+    document.querySelectorAll('.arch-code-block code').forEach(codeBlock => {
+        if (codeBlock.dataset.highlighted === 'true') return;
+        codeBlock.innerHTML = highlightCode(codeBlock.textContent);
+        codeBlock.dataset.highlighted = 'true';
+    });
+}
 
 // 图片放大查看
 function initLightbox() {

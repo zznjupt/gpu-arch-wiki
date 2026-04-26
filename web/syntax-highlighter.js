@@ -3,20 +3,22 @@ function highlightCode(code) {
     // 先转义 HTML
     let highlighted = escapeHtml(code);
 
-    // 注释（优先处理）
-    highlighted = highlighted.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
+    // C/C++ 预处理指令（#include 等）
+    highlighted = highlighted.replace(/^(#\s*(?:include|define|if|ifdef|ifndef|endif).*$)/gm, '<span class="keyword">$1</span>');
+
+    // 注释
+    highlighted = highlighted.replace(/^(\s*#(?!\s*(?:include|define|if|ifdef|ifndef|endif)\b).*$)/gm, '<span class="comment">$1</span>');
     highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>');
     highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$1</span>');
 
-    // C/C++ 预处理指令（#include 等）
-    highlighted = highlighted.replace(/^(#include.*$)/gm, '<span class="keyword">$1</span>');
-
     // 关键字
     const keywords = [
-        'import', 'from', 'def', 'class', 'return', 'if', 'else', 'for', 'while', 'with', 'as',
+        'import', 'from', 'def', 'class', 'return', 'if', 'else', 'for', 'while', 'with', 'as', 'in',
         '__global__', '__device__', '__shared__', '__host__', '__constant__',
-        'void', 'int', 'float', 'double', 'bool', 'auto', 'const',
-        'True', 'False', 'None'
+        'void', 'int', 'float', 'double', 'bool', 'auto', 'const', 'struct', 'using', 'namespace',
+        'static', 'volatile', 'asm', 'template', 'typename', 'public', 'private', 'protected',
+        'unsigned', 'long', 'short', 'char', 'sizeof',
+        'True', 'False', 'None', 'true', 'false', 'nullptr'
     ];
     keywords.forEach(keyword => {
         const regex = new RegExp(`\\b${keyword}\\b(?![^<]*>)`, 'g');
@@ -38,8 +40,8 @@ function highlightCode(code) {
 
     // 类型和库名
     const types = [
-        'torch', 'tf', 'np', 'tl', 'jnp', 'trt',
-        'int8_t', 'int16_t', 'int32_t', 'uint8_t',
+        'torch', 'tf', 'np', 'tl', 'jnp', 'trt', 'wmma', 'nvcuda',
+        'int8_t', 'int16_t', 'int32_t', 'uint8_t', 'uint32_t', 'uint4_t', 'uint2_t',
         '__half', '__nv_bfloat16', '__nv_fp8_e4m3', '__nv_fp8_e5m2',
         'half', 'bfloat16', 'float16', 'float32', 'float64',
         'dtype'

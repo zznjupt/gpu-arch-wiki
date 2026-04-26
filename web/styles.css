@@ -1020,11 +1020,119 @@ html {
     color: var(--accent-primary);
 }
 
+.arch-code-block {
+    margin: 12px 0;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: #0b1020;
+}
+
+.arch-code-label {
+    display: inline-block;
+    margin: 10px 12px 0;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--bg-tertiary);
+    color: var(--accent-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.arch-code-block pre {
+    margin: 0;
+    padding: 12px;
+    overflow-x: auto;
+    color: var(--text-primary);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.arch-code-block code {
+    padding: 0;
+    background: transparent;
+    color: inherit;
+}
+
+.arch-code-block .comment {
+    color: var(--text-dim);
+    font-style: italic;
+}
+
+.arch-code-block .keyword {
+    color: #ff79c6;
+    font-weight: 600;
+}
+
+.arch-code-block .string {
+    color: #50fa7b;
+}
+
+.arch-code-block .function {
+    color: var(--accent-secondary);
+}
+
+.arch-code-block .type {
+    color: #8be9fd;
+}
+
+.arch-code-block .number {
+    color: #bd93f9;
+}
+
 .arch-sub-title {
     font-size: 16px;
     font-weight: 600;
     color: var(--accent-secondary);
     margin: 20px 0 12px;
+}
+
+.arch-extra-section {
+    margin-top: 20px;
+}
+
+.arch-extra-section--tensor-core {
+    padding-top: 18px;
+    border-top: 1px solid rgba(0, 212, 170, 0.32);
+}
+
+.arch-extra-section--tensor-core .arch-sub-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    color: var(--accent-primary);
+}
+
+.arch-extra-section--tensor-core .arch-sub-title::before {
+    content: '';
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    background: var(--accent-primary);
+}
+
+.arch-extra-section--tensor-core .arch-content-row {
+    margin: 0 0 14px;
+}
+
+.arch-extra-section--tensor-core .arch-list {
+    display: block;
+    margin: 8px 0;
+}
+
+.arch-extra-section--tensor-core .arch-list li {
+    padding: 4px 0 4px 16px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+}
+
+.arch-extra-section--tensor-core .arch-list li::before {
+    left: 0;
+    top: auto;
 }
 
 /* 图文并排布局 */
