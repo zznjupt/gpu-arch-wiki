@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHardwareMatrix();
     initLightbox();
     initCodeHighlighting();
+    initPageToc();
 
     // 初始化当前 active section 的目录
     const activeSection = document.querySelector('.content-section.active');
@@ -76,8 +77,47 @@ function initNavigation() {
             document.querySelectorAll('.page-toc').forEach(toc => toc.classList.remove('visible'));
             const activeToc = document.querySelector(`#${targetSection} .page-toc`);
             if (activeToc) activeToc.classList.add('visible');
+            requestAnimationFrame(updateActiveTocLink);
         });
     });
+}
+
+// 页面右侧目录：点击和滚动时同步当前小节高亮
+function initPageToc() {
+    document.querySelectorAll('.page-toc a[href^="#"]').forEach(link => {
+        link.addEventListener('click', () => {
+            const toc = link.closest('.page-toc');
+            if (!toc) return;
+            toc.querySelectorAll('a').forEach(item => item.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+
+    window.addEventListener('scroll', updateActiveTocLink, { passive: true });
+    window.addEventListener('resize', updateActiveTocLink);
+    updateActiveTocLink();
+}
+
+function updateActiveTocLink() {
+    const activeSection = document.querySelector('.content-section.active');
+    if (!activeSection) return;
+
+    const links = activeSection.querySelectorAll('.page-toc a[href^="#"]');
+    if (!links.length) return;
+
+    let activeLink = links[0];
+    const viewportOffset = 140;
+
+    links.forEach(link => {
+        const targetId = decodeURIComponent(link.getAttribute('href').slice(1));
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        if (target.getBoundingClientRect().top <= viewportOffset) {
+            activeLink = link;
+        }
+    });
+
+    links.forEach(link => link.classList.toggle('active', link === activeLink));
 }
 
 // 渲染格式卡片

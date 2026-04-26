@@ -790,6 +790,16 @@
 
             <section id="nv-arch-1-fermi" class="content-section">
                 <h1 class="section-title">Fermi</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-fermi">概览</a></li>
+                        <li><a href="#arch-fermi-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-fermi-notes">说明</a></li>
+                        <li><a href="#arch-fermi-scale-memory">规模+存储层次</a></li>
+                        <li><a href="#arch-fermi-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -801,14 +811,14 @@
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-fermi-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">2</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">2</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">INT32+FP32 Core</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-fermi-notes">
                                     <ul class="arch-list">
                                     <li>Fermi 是 NVIDIA 第一个面向通用计算设计的完整架构。每个 SM 包含 32 个 CUDA Core，分布在 2 条 lane 上（每条 16 个）。</li>
                                     <li>Fermi 架构把 Tesla 架构的 TPC 改名为 <strong>Graphics Processor Clusters（GPC）</strong>，毕竟 Texture 现在显得不再那么重要。</li>
@@ -822,7 +832,7 @@
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--section">
+                        <div class="arch-extra-section arch-extra-section--scale-memory arch-section-anchor" id="arch-fermi-scale-memory">
                             <h3 class="arch-sub-title">Fermi 规模+存储层次</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -834,7 +844,7 @@
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-fermi-references">
                             <h3 class="arch-sub-title">Fermi References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ol class="arch-list-ol">
@@ -853,6 +863,17 @@
 
             <section id="nv-arch-1-kepler" class="content-section">
                 <h1 class="section-title">Kepler</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-kepler">概览</a></li>
+                        <li><a href="#arch-kepler-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-kepler-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-kepler-notes">说明</a></li>
+                        <li><a href="#arch-kepler-scale-memory-gk210">规模+存储层次 (GK210)</a></li>
+                        <li><a href="#arch-kepler-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -864,12 +885,15 @@
                             <span class="paper-tag">FP64</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-kepler-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/gk210_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-kepler-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">8</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">192</span><span class="sm-label">INT32+FP32 Core</span></div>
@@ -877,7 +901,7 @@
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-kepler-notes">
                                     <ul class="arch-list">
                                     <li>Kepler 去掉了 TPC/GPC 这一个层级，而是把 SM 做的很大，称为 <strong>SMX</strong>。相比 Fermi 大幅堆料：CUDA Core 从 32 暴增到 192（4 × 3 × 16，每条 lane 仍是 16 个）。</li>
                                     <li>Kepler 引入 <strong>独立的 64 个双精度运算单元</strong>，不需要通过单精度单元去做双精度运算。这使得 Kepler 的双精度性能远超前后几代。4 个 Warp Scheduler 搭配 8 个 Dispatch Unit（1:2 比例）。</li>
@@ -895,7 +919,7 @@
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--gk210">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-gk210 arch-section-anchor" id="arch-kepler-scale-memory-gk210">
                             <h3 class="arch-sub-title">Kepler 规模+存储层次 (GK210)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -906,7 +930,7 @@
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-kepler-references">
                             <h3 class="arch-sub-title">Kepler References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -924,6 +948,17 @@
 
             <section id="nv-arch-1-maxwell" class="content-section">
                 <h1 class="section-title">Maxwell</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-maxwell">概览</a></li>
+                        <li><a href="#arch-maxwell-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-maxwell-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-maxwell-notes">说明</a></li>
+                        <li><a href="#arch-maxwell-scale-memory-gm204-gm200">规模+存储层次 (gm204，最大规模芯片 gm200 无官方文档)</a></li>
+                        <li><a href="#arch-maxwell-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -935,19 +970,22 @@
                             <span class="paper-tag">能效比优先</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-maxwell-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/gm204_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-maxwell-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">8</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">128</span><span class="sm-label">INT32+FP32 Core</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-maxwell-notes">
                                     <ul class="arch-list">
                                     <li>虽然 Kepler 把 GPC 层次去掉了，但是 Maxwell 架构又把 GPC 加回来了。</li>
                                     <li>SM 更名为 <strong>SMM</strong>。开始做减法：<strong>移除独立双精度计算单元</strong>，CUDA Core 从 192 精简到 128（4 × 32）。</li>
@@ -961,7 +999,7 @@
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--gm204-gm200">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-gm204-gm200 arch-section-anchor" id="arch-maxwell-scale-memory-gm204-gm200">
                             <h3 class="arch-sub-title">Maxwell 规模+存储层次 (gm204，最大规模芯片 gm200 无官方文档)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -972,7 +1010,7 @@
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-maxwell-references">
                             <h3 class="arch-sub-title">Maxwell References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -991,6 +1029,18 @@
 
             <section id="nv-arch-1-pascal" class="content-section">
                 <h1 class="section-title">Pascal</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-pascal">概览</a></li>
+                        <li><a href="#arch-pascal-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-pascal-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-pascal-notes">说明</a></li>
+                        <li><a href="#arch-pascal-scale-memory-gp100">规模+存储层次 (GP100)</a></li>
+                        <li><a href="#arch-pascal-sm-architecture">SM 微架构图</a></li>
+                        <li><a href="#arch-pascal-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1002,12 +1052,15 @@
                             <span class="paper-tag">NVLink</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-pascal-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/gp100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-pascal-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">2</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">INT32+FP32 Core</span></div>
@@ -1015,7 +1068,7 @@
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-pascal-notes">
                                     <ul class="arch-list">
                                     <li>Pascal 架构每个 SM 只有 2 个 PB。</li>
                                     <li><strong>NVLink</strong>：首次引入 GPU 间高速互联 NVLink 1.0，双向带宽 160 GB/s</li>
@@ -1031,7 +1084,7 @@
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--gp100">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-gp100 arch-section-anchor" id="arch-pascal-scale-memory-gp100">
                             <h3 class="arch-sub-title">Pascal 规模+存储层次 (GP100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1045,7 +1098,7 @@
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--sm">
+                        <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-pascal-sm-architecture">
                             <h3 class="arch-sub-title">Pascal SM 微架构图</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/pascal_sm_arch.png" alt="" style="max-width:100%; height:auto;"></div>
@@ -1053,7 +1106,7 @@
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-pascal-references">
                             <h3 class="arch-sub-title">Pascal References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1070,6 +1123,23 @@
 
             <section id="nv-arch-2-volta" class="content-section">
                 <h1 class="section-title">Volta</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-volta">概览</a></li>
+                        <li><a href="#arch-volta-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-volta-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-volta-notes">说明</a></li>
+                        <li><a href="#arch-volta-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-volta-tensor-core-gen1-tensor-core-4x4x4-mma">第 1 代 Tensor Core 与 4x4x4 MMA</a></li>
+                        <li class="toc-child"><a href="#arch-volta-tensor-core-fp16-input-fp32-accumulation">FP16 输入与 FP32 累加</a></li>
+                        <li class="toc-child"><a href="#arch-volta-tensor-core-4x4x4-mma-flow">4x4x4 MMA 执行流程</a></li>
+                        <li class="toc-child"><a href="#arch-volta-tensor-core-wmma-programming">WMMA 编程接口</a></li>
+                        <li><a href="#arch-volta-scale-memory-gv100">规模+存储层次 (GV100)</a></li>
+                        <li><a href="#arch-volta-simt-thread-scheduling">SIMT 改进：独立线程调度</a></li>
+                        <li><a href="#arch-volta-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1081,12 +1151,15 @@
                             <span class="paper-tag">Tensor Core 诞生</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-volta-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/gv100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-volta-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">FP32 Core</span></div>
@@ -1096,7 +1169,7 @@
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-volta-notes">
                                     <ul class="arch-list">
                                     <li><strong>里程碑架构。</strong></li>
                                     <li><strong>Tensor Core 1.0</strong>：首次把矩阵乘累加做成独立硬件单元，成为后续 AI 加速路线的起点。</li>
@@ -1114,7 +1187,7 @@
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-volta-tensor-core">
                             <h3 class="arch-sub-title">Volta Tensor Core 小结</h3>
                         <div class="arch-content-row">
                             <div class="arch-figure-half">
@@ -1126,6 +1199,8 @@
                                 <div class="paper-figure-caption">FP16 输入，全精度乘法，FP16/FP32 累加</div>
                             </div>
                         </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-volta-tensor-core-gen1-tensor-core-4x4x4-mma">
+                            <h4 class="arch-feature-title">第 1 代 Tensor Core 与 4x4x4 MMA</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 1 代 Tensor Core，首次在 NVIDIA GPU 中加入专用矩阵乘累加硬件。</li>
@@ -1137,54 +1212,113 @@
                                     <li>核心意义：Volta 把深度学习中的 GEMM 从 CUDA Core 标量路径中抽离出来，后续几代的低精度、稀疏和 Transformer Engine 都沿着这条路线演进。</li>
                                     </ul>
                                     <p>通俗地说，传统 CUDA Core 更像一排“标量工人”，每个工人一次处理一个乘法或加法；Tensor Core 则像一个小型矩阵计算器，一次接收一小块矩阵，直接完成矩阵乘加。深度学习里的卷积、全连接层和注意力投影最后大多会落到 GEMM，因此把这类计算从通用 CUDA Core 中拿出来做专用硬件，是 Volta 相比 Pascal 的关键转折。</p>
-                                    <p>Volta 的第一代 Tensor Core 选择了一个很实用的折中：输入和存储用 FP16，减少显存占用和带宽压力；累加用 FP32，避免训练时误差快速放大。对训练来说，这比“全程 FP16”稳，也比“全程 FP32”快。V100 的 FP16 Tensor Core 峰值达到 125 TFLOPS，已经把 AI 训练吞吐推到 Pascal 时代很难靠堆 CUDA Core 达到的量级。</p>
-                                    <p>不过 Volta 时代的软件生态还没有后来那么自动化。开发者通常需要通过 cuBLAS/cuDNN 的 Tensor Core kernel，或者直接用 WMMA API，主动把矩阵尺寸、数据类型和内存布局整理成 Tensor Core 友好的形式。后来的 AMP、TF32 和 Transformer Engine，本质上都是在降低这部分使用门槛。</p>
-                                    <p>下面这个伪代码表达的是单个 Tensor Core 在概念上的 4×4×4 矩阵乘累加过程。真实硬件不会按三层 <code>for</code> 循环逐条执行，但这个写法能看清 FP16 输入和 FP32 累加的关系。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// Volta Tensor Core 执行流程（概念示意）
-// 1. 加载 4x4 FP16 矩阵 A 和 B
-// 2. 执行 4x4x4 矩阵乘法，共 64 次 FP16 multiply
-// 3. 累加到 4x4 FP32 accumulator C
-// 4. 输出 4x4 结果 D
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-volta-tensor-core-fp16-input-fp32-accumulation">
+                            <h4 class="arch-feature-title">FP16 输入与 FP32 累加</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Volta 的第一代 Tensor Core 选择了一个很实用的折中：输入和存储用 FP16，减少显存占用和带宽压力；累加用 FP32，避免训练时误差快速放大。对训练来说，这比“全程 FP16”稳，也比“全程 FP32”快。V100 的 FP16 Tensor Core 峰值达到 125 TFLOPS，已经把 AI 训练吞吐推到 Pascal 时代很难靠堆 CUDA Core 达到的量级。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-volta-tensor-core-4x4x4-mma-flow">
+                            <h4 class="arch-feature-title">4x4x4 MMA 执行流程</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>下面这个伪代码表达的是单个 Tensor Core 在概念上的 4×4×4 矩阵乘累加过程。真实硬件不会按三层 <code>for</code> 循环逐条执行，但这个写法能看清 FP16 输入和 FP32 累加的关系。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// Volta Tensor Core 执行流程（概念示意）。
+// 真实 Tensor Core 会在硬件里并行完成这组矩阵乘加，这里用三层循环拆开，
+// 目的是说明 4x4x4 MMA 里每个输出元素 D[i][j] 的来源。
 for (int i = 0; i &lt; 4; i++) {
+    // i 表示输出矩阵 D 的行，同时对应 A 矩阵被读取的行。
     for (int j = 0; j &lt; 4; j++) {
-        float sum = C[i][j];  // FP32 accumulator
+        // j 表示输出矩阵 D 的列，同时对应 B 矩阵被读取的列。
+        // C[i][j] 是本轮 MMA 的初始累加值；Volta 训练场景通常使用 FP32 accumulator，
+        // 这样可以在 FP16 输入带来高吞吐的同时，减少累加误差。
+        float sum = C[i][j];
+
         for (int k = 0; k &lt; 4; k++) {
+            // k 是点积维度：A 的第 i 行和 B 的第 j 列逐项相乘。
+            // A/B 原始输入是 FP16；乘法结果参与 FP32 累加，等价于 D = A * B + C。
             sum += (float)A[i][k] * (float)B[k][j];
         }
+
+        // 单个输出元素计算完成后写回 D。
+        // 真实硬件会一次性并行产出整个 4x4 tile，而不是逐元素循环写回。
         D[i][j] = sum;
     }
 }</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-volta-tensor-core-wmma-programming">
+                            <h4 class="arch-feature-title">WMMA 编程接口</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>不过 Volta 时代的软件生态还没有后来那么自动化。开发者通常需要通过 cuBLAS/cuDNN 的 Tensor Core kernel，或者直接用 WMMA API，主动把矩阵尺寸、数据类型和内存布局整理成 Tensor Core 友好的形式。后来的 AMP、TF32 和 Transformer Engine，本质上都是在降低这部分使用门槛。</p>
                                     <p>Volta 对开发者最重要的变化是 WMMA API。它把一个 warp 协作完成的矩阵乘累加抽象成 fragment，开发者只需要描述 A、B、Accumulator 的 tile 形状、类型和布局。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">#include &lt;mma.h&gt;
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// WMMA 是 CUDA 对 Tensor Core 的 warp 级抽象，头文件里定义了 fragment、
+// load_matrix_sync、mma_sync 等接口。
+#include &lt;mma.h&gt;
+
+// nvcuda 命名空间下的 wmma 子命名空间提供矩阵片段类型和 MMA 操作。
 using namespace nvcuda;
 
+// A 矩阵片段：一个 warp 协作处理 16x16x16 tile 中的 matrix_a。
+// half 表示输入元素是 FP16，row_major 表示 A 按行主序读取。
 wmma::fragment&lt;wmma::matrix_a, 16, 16, 16, half, wmma::row_major&gt; a_frag;
+
+// B 矩阵片段：同样是 FP16，但这里用 col_major，便于表达常见 GEMM 中 B 的布局。
 wmma::fragment&lt;wmma::matrix_b, 16, 16, 16, half, wmma::col_major&gt; b_frag;
+
+// accumulator 片段：保存 16x16 输出 tile 的累加结果，类型是 FP32。
+// FP32 accumulator 是混合精度训练保持稳定性的关键。
 wmma::fragment&lt;wmma::accumulator, 16, 16, 16, float&gt; c_frag;
 
+// 把输出 tile 的累加器清零，等价于 C tile 初始值为 0。
 wmma::fill_fragment(c_frag, 0.0f);
+
+// 从内存中加载 A/B tile 到 warp 内部的 fragment。
+// lda/ldb 是 leading dimension，用于告诉 WMMA 每一行或每一列在内存中的跨度。
 wmma::load_matrix_sync(a_frag, a_tile, lda);
 wmma::load_matrix_sync(b_frag, b_tile, ldb);
+
+// 执行一次 16x16x16 矩阵乘累加：c_frag = a_frag * b_frag + c_frag。
+// 这个调用会映射到底层 Tensor Core 指令。
 wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
+
+// 把 accumulator fragment 写回输出矩阵 C。
+// wmma::mem_row_major 表示输出 tile 按行主序落到内存。
 wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre></div>
                                     <p>完整 kernel 会在 K 维上循环加载 tile，并把多个 <code>mma_sync</code> 累加到同一个 accumulator fragment：</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">__global__ void hgemm_wmma_kernel(
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 一个极简 HGEMM WMMA kernel：A/B 是 FP16，C 是 FP32。
+// 示例重点是展示 K 维循环累加，不包含边界检查、shared memory 优化和高性能调度。
+__global__ void hgemm_wmma_kernel(
     const half* A, const half* B, float* C,
     int M, int N, int K
 ) {
+    // 每个 warp 维护当前 16x16 输出 tile 所需的 A、B、C 片段。
     wmma::fragment&lt;wmma::matrix_a, 16, 16, 16, half, wmma::row_major&gt; a_frag;
     wmma::fragment&lt;wmma::matrix_b, 16, 16, 16, half, wmma::col_major&gt; b_frag;
     wmma::fragment&lt;wmma::accumulator, 16, 16, 16, float&gt; c_frag;
 
+    // 计算当前 warp 负责输出矩阵中的哪个 16x16 tile。
+    // warp_m 对应输出 tile 的行方向索引，warp_n 对应列方向索引。
     int warp_m = (blockIdx.y * blockDim.y + threadIdx.y) / 16;
     int warp_n = (blockIdx.x * blockDim.x + threadIdx.x) / 16;
 
+    // 初始化 accumulator。真实 GEMM 如果有 beta * C，也可以先加载已有 C tile。
     wmma::fill_fragment(c_frag, 0.0f);
+
+    // 沿 K 维每次推进 16 个元素，对同一个输出 tile 持续累加。
     for (int k = 0; k &lt; K; k += 16) {
+        // 加载 A 的 16x16 tile：起点位于第 warp_m 个输出行块、第 k 个 K 块。
         wmma::load_matrix_sync(a_frag, A + warp_m * 16 * K + k, K);
+
+        // 加载 B 的 16x16 tile：起点位于第 k 个 K 块、第 warp_n 个输出列块。
         wmma::load_matrix_sync(b_frag, B + k * N + warp_n * 16, N);
+
+        // 当前 K tile 的乘积累加到 c_frag。
         wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
     }
+
+    // K 维全部累加完成后，把 16x16 输出 tile 写回全局内存。
     wmma::store_matrix_sync(C + warp_m * 16 * N + warp_n * 16,
                             c_frag, N, wmma::mem_row_major);
 }</code></pre></div>
@@ -1195,9 +1329,10 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                                     </ul>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--gv100">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-gv100 arch-section-anchor" id="arch-volta-scale-memory-gv100">
                             <h3 class="arch-sub-title">Volta 规模+存储层次 (GV100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1217,7 +1352,7 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--simt">
+                        <div class="arch-extra-section arch-extra-section--simt-thread-scheduling arch-section-anchor" id="arch-volta-simt-thread-scheduling">
                             <h3 class="arch-sub-title">Volta SIMT 改进：独立线程调度</h3>
                         <div class="arch-content-row">
                             <div class="arch-figure-half">
@@ -1235,7 +1370,7 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-volta-references">
                             <h3 class="arch-sub-title">Volta References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1254,6 +1389,22 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
 
             <section id="nv-arch-3-turing" class="content-section">
                 <h1 class="section-title">Turing</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-turing">概览</a></li>
+                        <li><a href="#arch-turing-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-turing-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-turing-notes">说明</a></li>
+                        <li><a href="#arch-turing-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-turing-tensor-core-gen2-tensor-core-inference">第 2 代 Tensor Core 与推理扩展</a></li>
+                        <li class="toc-child"><a href="#arch-turing-tensor-core-int8-int4-binary-quantization">INT8/INT4/Binary 量化路径</a></li>
+                        <li class="toc-child"><a href="#arch-turing-tensor-core-tensorrt-calibration-deployment">TensorRT 校准与部署</a></li>
+                        <li><a href="#arch-turing-scale-memory-tu102">规模+存储层次 (TU102)</a></li>
+                        <li><a href="#arch-turing-sm-architecture">SM 微架构图</a></li>
+                        <li><a href="#arch-turing-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1265,12 +1416,15 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                             <span class="paper-tag">RT Core</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-turing-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/tu102_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-turing-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">FP32 Core</span></div>
@@ -1279,7 +1433,7 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-turing-notes">
                                     <ul class="arch-list">
                                     <li><strong>Tensor Core 2.0</strong>：在 Volta 基础上新增低精度整数路径，开始覆盖推理量化场景。</li>
                                     <li>引入 <strong>RT Core</strong>（光线追踪加速单元）。</li>
@@ -1292,8 +1446,10 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-turing-tensor-core">
                             <h3 class="arch-sub-title">Turing Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-turing-tensor-core-gen2-tensor-core-inference">
+                            <h4 class="arch-feature-title">第 2 代 Tensor Core 与推理扩展</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 2 代 Tensor Core，重点从训练扩展到推理。</li>
@@ -1304,40 +1460,86 @@ wmma::store_matrix_sync(c_tile, c_frag, ldc, wmma::mem_row_major);</code></pre><
                                     <li>核心收益：INT8 吞吐通常可达到 FP16 的 2 倍，INT4 可进一步提高到 FP16 的 4 倍，适合量化推理。</li>
                                     <li>典型落点：T4 和 RTX 20 系列把 Tensor Core 从训练卡扩展到大规模在线推理和消费级 RTX 生态。</li>
                                     </ul>
-                                    <p>Turing 开始，Tensor Core 不只是训练加速器，也成了推理部署里的量化执行单元。工程上通常不会手写 INT8 MMA，而是通过 TensorRT 校准或 QAT 后让引擎选择 Tensor Core kernel。</p>
-                                    <p>TensorRT C++ 侧的核心是启用 INT8，并挂上校准器：</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// TensorRT INT8 推理引擎构建示意
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-turing-tensor-core-int8-int4-binary-quantization">
+                            <h4 class="arch-feature-title">INT8/INT4/Binary 量化路径</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Turing 开始，Tensor Core 不只是训练加速器，也成了推理部署里的量化执行单元。工程上通常不会手写 INT8 MMA，而是通过 TensorRT 校准或 QAT 后让引擎选择 Tensor Core kernel。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-turing-tensor-core-tensorrt-calibration-deployment">
+                            <h4 class="arch-feature-title">TensorRT 校准与部署</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>TensorRT C++ 侧的核心是启用 INT8，并挂上校准器：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// TensorRT INT8 推理引擎构建示意。
+// Turing 的 Tensor Core 对 INT8/INT4 推理很友好，但前提是引擎知道哪些层可以安全量化。
+
+// 启用 INT8 构建模式，让 TensorRT 在支持的 layer 上选择 INT8 Tensor Core kernel。
 builder-&gt;setInt8Mode(true);
+
+// 严格类型约束会减少 TensorRT 自动回退或自动插入重排的自由度。
+// 实际项目中是否开启要看精度、性能和兼容性需求。
 builder-&gt;setStrictTypeConstraints(true);
 
+// PTQ（Post-Training Quantization）需要校准器提供有代表性的输入样本。
+// TensorRT 会用这些样本估计 activation 的动态范围，生成 INT8 scale。
 class Int8Calibrator : public IInt8EntropyCalibrator2 {
 public:
     bool getBatch(void* bindings[], const char* names[], int nbBindings) override {
+        // 把一批校准数据从 CPU 拷贝到 GPU 输入绑定。
+        // bindings[0] 通常对应网络第一个输入 tensor 的 device pointer。
         cudaMemcpy(bindings[0], batch_data, batch_bytes, cudaMemcpyHostToDevice);
+
+        // 返回 true 表示本次 batch 有效；数据耗尽时返回 false 结束校准。
         return true;
     }
 };
 
+// dataloader 负责持续提供覆盖真实业务分布的校准样本。
 Int8Calibrator calibrator(dataloader);
+
+// 把校准器交给 builder config，后续构建 engine 时会执行校准流程。
 config-&gt;setInt8Calibrator(&amp;calibrator);
+
+// 构建完成后的 engine 会把可量化部分编译成 INT8 路径，不适合量化的层可能保持 FP16/FP32。
 ICudaEngine* engine = builder-&gt;buildEngineWithConfig(*network, *config);</code></pre></div>
                                     <p>Python 侧更常见，尤其是从 ONNX 模型离线构建 engine：</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import tensorrt as trt
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># TensorRT Python API，用于离线构建推理 engine。
+import tensorrt as trt
 
+# logger 控制 TensorRT 构建阶段的日志级别；WARNING 能保留关键告警同时减少噪声。
 logger = trt.Logger(trt.Logger.WARNING)
+
+# Builder 负责把网络定义、精度策略和硬件能力编译成可部署的 engine。
 builder = trt.Builder(logger)
+
+# EXPLICIT_BATCH 表示 batch 维度显式出现在网络输入 shape 中，
+# ONNX 导入场景通常都使用这种模式。
 network = builder.create_network(
     1 &lt;&lt; int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH)
 )
+
+# ONNX parser 会把 model.onnx 中的算子图填充到 TensorRT network 里。
 parser = trt.OnnxParser(network, logger)
 
 with open(&quot;model.onnx&quot;, &quot;rb&quot;) as f:
+    # 解析 ONNX 字节流；真实工程里应检查 parser error，避免静默构建失败。
     parser.parse(f.read())
 
+# config 用于设置精度、workspace、profile、校准器等构建选项。
 config = builder.create_builder_config()
+
+# INT8 打开后，TensorRT 会尝试为支持的层选择 INT8 Tensor Core kernel。
 config.set_flag(trt.BuilderFlag.INT8)
+
+# 同时打开 FP16，方便无法安全 INT8 的层回退到 FP16，而不是全部回到 FP32。
 config.set_flag(trt.BuilderFlag.FP16)
-config.int8_calibrator = calibrator  # PTQ 校准数据
+
+# calibrator 提供 PTQ 校准数据，帮助 TensorRT 估计每个 tensor 的量化 scale。
+config.int8_calibrator = calibrator
+
+# 输出序列化 engine，部署时可直接反序列化加载，避免每次启动重新构建。
 serialized_engine = builder.build_serialized_network(network, config)</code></pre></div>
                                     <ul class="arch-list">
                                     <li>INT8 推理要关注校准集覆盖度，校准不好时吞吐上去了但精度会掉。</li>
@@ -1346,9 +1548,10 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                                     </ul>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--tu102">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-tu102 arch-section-anchor" id="arch-turing-scale-memory-tu102">
                             <h3 class="arch-sub-title">Turing 规模+存储层次 (TU102)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1359,7 +1562,7 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--sm">
+                        <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-turing-sm-architecture">
                             <h3 class="arch-sub-title">Turing SM 微架构图</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/turing_sm_arch.png" alt="" style="max-width:100%; height:auto;"></div>
@@ -1367,7 +1570,7 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-turing-references">
                             <h3 class="arch-sub-title">Turing References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1385,6 +1588,23 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
 
             <section id="nv-arch-4-ampere" class="content-section">
                 <h1 class="section-title">Ampere (GA100)</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-ampere-ga100">概览</a></li>
+                        <li><a href="#arch-ampere-ga100-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-ampere-ga100-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-ampere-ga100-notes">说明</a></li>
+                        <li><a href="#arch-ampere-ga100-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga100-tensor-core-gen3-tensor-core-ga100">第 3 代 Tensor Core 与 GA100 定位</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga100-tensor-core-tf32-bf16-fp64-types">TF32/BF16/FP64 数据类型</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga100-tensor-core-2-4-structured-sparsity">2:4 结构化稀疏</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga100-tensor-core-kernel-tuning-low-level-mma">Kernel 调优与底层 MMA</a></li>
+                        <li><a href="#arch-ampere-ga100-scale-memory">规模+存储层次</a></li>
+                        <li><a href="#arch-ampere-ga100-a100-vs-v100">A100 vs V100 性能提升</a></li>
+                        <li><a href="#arch-ampere-ga100-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1396,12 +1616,15 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                             <span class="paper-tag">稀疏 Tensor Core</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-ampere-ga100-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/ga100_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-ampere-ga100-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">FP32 Core</span></div>
@@ -1411,7 +1634,7 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-ampere-ga100-notes">
                                     <ul class="arch-list">
                                     <li>4 个 PB。</li>
                                     <li><strong>Tensor Core 3.0</strong>：引入 TF32、BF16、FP64 Tensor Core 和 2:4 结构化稀疏，训练、推理和 HPC 都明显受益。</li>
@@ -1425,43 +1648,78 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-ampere-ga100-tensor-core">
                             <h3 class="arch-sub-title">Ampere (GA100) Tensor Core 小结</h3>
                         <div class="paper-figure" style="margin-top:12px">
                             <img src="images/sparse_tc.png" alt="2:4 结构化稀疏：权重压缩为非零值 + 元数据，Sparse Tensor Core 按元数据选择参与计算的 activation" style="max-width:700px">
                             <div class="paper-figure-caption">2:4 结构化稀疏：权重压缩为非零值 + 元数据，Sparse Tensor Core 按元数据选择参与计算的 activation</div>
                         </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga100-tensor-core-gen3-tensor-core-ga100">
+                            <h4 class="arch-feature-title">第 3 代 Tensor Core 与 GA100 定位</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 3 代 Tensor Core，A100 的核心升级点是让 Tensor Core 同时覆盖 AI 训练、推理和 HPC。</li>
                                     <li>SM 组织：每个 SM 的 Tensor Core 从 Volta/Turing 的 8 个减到 4 个，但单个 Tensor Core 内部吞吐约提升 4 倍。</li>
                                     <li>总体吞吐：数量减半但单元变强，因此 Dense Tensor Core 总吞吐约为上一代的 2 倍。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga100-tensor-core-tf32-bf16-fp64-types">
+                            <h4 class="arch-feature-title">TF32/BF16/FP64 数据类型</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>新数据类型：新增 TF32、BF16、FP64 Tensor Core，并继续支持 FP16、INT8、INT4、Binary/INT1。</li>
                                     <li>TF32 路径：FP32 代码可在不改模型代码的情况下走 Tensor Core，指数范围接近 FP32，尾数精度低于 FP32。</li>
                                     <li>BF16 路径：保留 FP32 级别动态范围，更适合大模型训练中的梯度和激活范围。</li>
                                     <li>FP64 路径：GA100 首次把双精度矩阵乘也纳入 Tensor Core，面向科学计算和 HPC。</li>
-                                    <li>稀疏路径：2:4 结构化稀疏要求每连续 4 个权重中 2 个为 0，硬件通过元数据选择非零项，理论上把同精度有效吞吐再提高约 2 倍。</li>
                                     </ul>
                                     <p>Ampere 的软件侧变化是“默认 FP32 代码也可能走 Tensor Core”。TF32 保持 FP32 的指数位，降低尾数精度，适合大多数深度学习矩阵乘；如果需要严格数值复现，需要显式关闭或调整 matmul 精度策略。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import torch
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># PyTorch 的 matmul/conv 会通过 CUDA 后端选择合适的 Tensor Core kernel。
+import torch
 
+# Ampere 默认支持 TF32 Tensor Core 路径。
+# allow_tf32=True 表示 FP32 矩阵乘可以用 TF32 计算格式执行，通常吞吐更高。
 torch.backends.cuda.matmul.allow_tf32 = True
+
+# cuDNN 中的卷积也可以使用 TF32，加速 CNN 或卷积型模块。
 torch.backends.cudnn.allow_tf32 = True
 
+# AMP 的 GradScaler 用于动态 loss scaling，避免 FP16/BF16 混合精度训练中梯度下溢。
 scaler = torch.cuda.amp.GradScaler()
 
 for x, target in dataloader:
+    # 清空上一轮梯度；否则 PyTorch 会默认把梯度累加到已有 grad 上。
     optimizer.zero_grad()
+
+    # autocast 会按算子白名单/黑名单自动选择低精度或 FP32。
+    # 这里使用 BF16，适合 Ampere 上需要较大动态范围的训练场景。
     with torch.cuda.amp.autocast(dtype=torch.bfloat16):
+        # 前向传播中的 GEMM、卷积、attention projection 等会优先使用 Tensor Core。
         y = model(x)
+
+        # loss 计算可能包含归约操作，框架会根据 autocast 策略选择更稳的精度。
         loss = criterion(y, target)
 
+    # 先缩放 loss 再反向传播，降低低精度梯度过小而被 flush 成 0 的概率。
     scaler.scale(loss).backward()
+
+    # step 会自动 unscale 梯度，并在检测到溢出时跳过 optimizer 更新。
     scaler.step(optimizer)
+
+    # 根据本轮是否溢出调整缩放因子，下一轮继续使用新的 scale。
     scaler.update()</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga100-tensor-core-2-4-structured-sparsity">
+                            <h4 class="arch-feature-title">2:4 结构化稀疏</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>稀疏路径：2:4 结构化稀疏要求每连续 4 个权重中 2 个为 0，硬件通过元数据选择非零项，理论上把同精度有效吞吐再提高约 2 倍。</li>
+                                    </ul>
                                     <p>稀疏 Tensor Core 不是通用稀疏矩阵加速器，它吃的是结构化 2:4 权重。典型流程是先训练/剪枝得到满足约束的权重，再压缩为非零值和元数据，让硬件按元数据选择参与点积的 activation。</p>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// Dense 存储：零值也占用存储和计算槽位
 float dense_matrix[4][4] = {
+    // 每行 4 个权重里只有 2 个非零值；这满足 Ampere 2:4 结构化稀疏的基本形态。
     {1.0, 0.0, 0.0, 2.0},
     {0.0, 3.0, 0.0, 0.0},
     {0.0, 0.0, 4.0, 0.0},
@@ -1470,110 +1728,181 @@ float dense_matrix[4][4] = {
 
 // Sparse 存储：只保留非零值和位置索引
 struct SparseMatrix {
+    // values 保存实际参与乘法的非零权重，避免把 0 也搬运和计算一遍。
     float values[8];
+
+    // indices 记录每个非零值在原始矩阵中的位置。
+    // 注意：这只是通用稀疏的概念表示，不等同于 Ampere Sparse Tensor Core 的硬件压缩格式。
     uint2_t indices[8];
 };</code></pre></div>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 2:4 结构化稀疏的概念存储：值减半，再附带位置元数据
 struct Sparse2to4Tile {
-    half values[8];       // 原来 16 个权重中保留 8 个非零值
-    uint8_t metadata[4];  // 每组 4 个权重的非零位置
+    // 原来 16 个权重被分成 4 组，每组 4 个；每组只保留 2 个非零值，所以总共 8 个值。
+    half values[8];
+
+    // metadata 记录每组 4 个权重中哪 2 个位置非零。
+    // Sparse Tensor Core 会根据这些元数据选择 activation，与 values 做点积。
+    uint8_t metadata[4];
 };</code></pre></div>
                                     <p>普通稀疏 WMMA kernel 可以作为理解材料，但它不等同于 Ampere Sparse Tensor Core 的 2:4 硬件路径。真正的 Sparse Tensor Core 需要满足固定 2:4 模式，并使用硬件认可的压缩布局。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">__global__ void sparse_gemm_wmma(
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 普通稀疏 GEMM 的 WMMA 写法示意。
+// 它用来帮助理解“稀疏值 + 位置”的计算流程，不代表 Ampere 2:4 Sparse Tensor Core 的真实接口。
+__global__ void sparse_gemm_wmma(
     const half* A_values,
     const int* A_indices,
     const half* B_dense,
     float* C,
     int M, int N, int K, int nnz
 ) {
+    // B 仍然按 dense tile 加载；稀疏的是 A 矩阵。
     wmma::fragment&lt;wmma::matrix_b, 16, 16, 16, half, wmma::row_major&gt; b_frag;
+
+    // C 使用 FP32 accumulator，降低长 K 维累加带来的误差。
     wmma::fragment&lt;wmma::accumulator, 16, 16, 16, float&gt; c_frag;
 
+    // 初始化输出 tile 的累加器。
     wmma::fill_fragment(c_frag, 0.0f);
 
+    // 遍历 A 的非零项；真实高性能实现会按 tile/block 组织，而不是逐元素循环。
     for (int idx = 0; idx &lt; nnz; idx++) {
+        // A_indices 以 row/col 成对保存非零值位置。
         int row = A_indices[idx * 2];
         int col = A_indices[idx * 2 + 1];
+
+        // 取出当前非零权重值。
         half value = A_values[idx];
 
+        // 构造 A 的 fragment。这里每次只填一个非零值，是为了表达概念。
         wmma::fragment&lt;wmma::matrix_a, 16, 16, 16, half, wmma::row_major&gt; a_frag;
+
         // 这里需要把稀疏值填回 fragment 对应位置；真实实现还要处理布局和合并访问。
         fill_sparse_fragment(a_frag, row, col, value);
 
+        // 根据当前非零值所在的 col，加载 B 中对应的 dense tile。
         wmma::load_matrix_sync(b_frag, B_dense + col * 16 * N, N);
+
+        // 把当前稀疏 A fragment 与 B tile 的乘积累加到 C。
         wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
     }
 
+    // 所有非零项处理完后写回输出 tile。
     wmma::store_matrix_sync(C, c_frag, N, wmma::mem_row_major);
 }</code></pre></div>
-                                    <ul class="arch-list">
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga100-tensor-core-kernel-tuning-low-level-mma">
+                            <h4 class="arch-feature-title">Kernel 调优与底层 MMA</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>适合场景：大规模 GEMM、卷积 lowering 后的矩阵乘、Transformer MLP/attention projection。</li>
                                     <li>不适合场景：稀疏模式无规则、矩阵太小、维度不对齐或 kernel 被访存瓶颈支配。</li>
                                     <li>调优检查：M/N/K 对齐 8 或 16，global memory 合并访问，shared memory 避免 bank conflict，用 Nsight Compute 看 tensor pipe 是否真正忙起来。</li>
                                     </ul>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 访存优化示意：先把全局内存 tile 搬到 shared memory
-__shared__ half smem_a[16][16 + 1];  // +1 padding 用于缓解 bank conflict
+// +1 padding 让相邻行的起始地址错开，减少 shared memory bank conflict。
+__shared__ half smem_a[16][16 + 1];
 
+// 每个线程搬运 tile 中的一部分元素。
+// 全局内存访问尽量连续，便于合并访存；shared memory 则作为 Tensor Core 前的缓存。
 smem_a[threadIdx.y][threadIdx.x] =
     A[row * K + k + threadIdx.x];
+
+// 等待整个线程块完成搬运，避免后续 WMMA 读取到未写完的 shared memory。
 __syncthreads();
 
+// 从 shared memory 加载 A fragment。
+// leading dimension 使用 16 + 1，是因为前面为了避开 bank conflict 添加了 padding。
 wmma::load_matrix_sync(a_frag, &amp;smem_a[0][0], 16 + 1);</code></pre></div>
                                     <p>双缓冲是 Tensor Core kernel 里隐藏访存延迟的经典套路：一块 shared memory 正在供 Tensor Core 计算，另一块同时准备下一轮 tile。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">__global__ void gemm_double_buffer(half* A, half* B, float* C,
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 双缓冲 GEMM 概念示例：一个 stage 供 Tensor Core 计算，另一个 stage 预取下一块 tile。
+__global__ void gemm_double_buffer(half* A, half* B, float* C,
                                    int M, int N, int K) {
+    // smem_a/smem_b 的第一维是 2，表示两个缓冲区交替使用。
     __shared__ half smem_a[2][16][64];
     __shared__ half smem_b[2][64][16];
+
+    // stage 指向当前用于计算的 shared memory 缓冲区。
     int stage = 0;
 
+    // 先预加载第 0 个 K tile，让后面的循环一开始就有数据可算。
     load_tile_to_smem(smem_a[0], smem_b[0], A, B, 0);
+
+    // 确保预加载完成后再进入计算循环。
     __syncthreads();
 
     for (int k = 0; k &lt; K; k += 16) {
+        // 如果还有下一块 K tile，就把它加载到另一个缓冲区。
+        // 在真实异步实现里，这一步会和当前 tile 的计算尽量重叠。
         if (k + 16 &lt; K) {
             load_tile_to_smem(smem_a[stage ^ 1],
                               smem_b[stage ^ 1],
                               A, B, k + 16);
         }
 
+        // 从当前 stage 的 shared memory 中取出 A/B fragment。
         wmma::load_matrix_sync(a_frag, smem_a[stage], 64);
         wmma::load_matrix_sync(b_frag, smem_b[stage], 16);
+
+        // Tensor Core 执行当前 tile 的矩阵乘累加。
         wmma::mma_sync(c_frag, a_frag, b_frag, c_frag);
 
+        // 等待下一块 tile 加载完成，再切换 stage。
         __syncthreads();
+
+        // 0 和 1 之间来回切换，达到 ping-pong buffer 的效果。
         stage ^= 1;
     }
+
+    // K 维所有 tile 累加完成后写回输出矩阵。
     wmma::store_matrix_sync(C, c_frag, N, wmma::mem_row_major);
 }</code></pre></div>
                                     <p>如果 WMMA 的抽象不够用，可以继续往下用 <code>ldmatrix</code> 和 <code>mma.sync</code> 直接控制寄存器片段。这类代码通常出现在 CUTLASS、Triton 或手写高性能 GEMM kernel 的底层。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">uint32_t frag_a[4];
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 手写 PTX 片段示意：直接操作 Tensor Core 需要的寄存器 fragment。
+// 这类代码可读性差，但能精细控制底层指令、寄存器和 shared memory 布局。
+uint32_t frag_a[4];
 uint32_t frag_b[2];
+
+// C fragment 同时作为输入 accumulator 和输出 accumulator，初始值为 0。
 uint32_t frag_c[2] = {0, 0};
 
+// ldmatrix 从 shared memory 以 Tensor Core 需要的布局加载矩阵片段。
+// x4 表示一次加载 4 组寄存器，m8n8.x4.shared.b16 表示 16-bit shared memory 矩阵片段。
 asm volatile(
     &quot;ldmatrix.sync.aligned.x4.m8n8.x4.shared.b16 &quot;
     &quot;{ %0, %1, %2, %3 }, [%4];\n&quot;
+    // 输出操作数：frag_a[0..3] 接收从 shared memory 读出的 A fragment。
     : &quot;=r&quot;(frag_a[0]), &quot;=r&quot;(frag_a[1]), &quot;=r&quot;(frag_a[2]), &quot;=r&quot;(frag_a[3])
+    // 输入操作数：smem_a_ptr 是 shared memory 地址。
     : &quot;r&quot;(smem_a_ptr)
 );
 
+// mma.sync 触发一次 Tensor Core 矩阵乘累加。
+// m16n8k16 表示 tile 形状，row.col 表示 A/B 的逻辑布局，f16.f16.f16.f16 表示输入/输出类型。
 asm volatile(
     &quot;mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 &quot;
     &quot;{ %0, %1 }, { %2, %3, %4, %5 }, { %6, %7 }, { %8, %9 };\n&quot;
+    // 输出操作数：更新后的 C fragment。
     : &quot;=r&quot;(frag_c[0]), &quot;=r&quot;(frag_c[1])
+    // 输入操作数：A fragment、B fragment，以及旧的 C accumulator。
     : &quot;r&quot;(frag_a[0]), &quot;r&quot;(frag_a[1]), &quot;r&quot;(frag_a[2]), &quot;r&quot;(frag_a[3]),
       &quot;r&quot;(frag_b[0]), &quot;r&quot;(frag_b[1]),
       &quot;r&quot;(frag_c[0]), &quot;r&quot;(frag_c[1])
 );</code></pre></div>
                                     <div class="arch-code-block"><div class="arch-code-label">BASH</div><pre><code class="language-bash"># 用 Nsight Compute 检查 Tensor Core 路径是否真的启用
+# 统计 tensor pipe 上执行过的指令数量；如果接近 0，说明 kernel 很可能没有走 Tensor Core。
 ncu --metrics smsp__inst_executed_pipe_tensor.sum ./my_program
+
+# 观察 tensor pipe 活跃周期占峰值可持续周期的比例，用于判断 Tensor Core 是否成为主要计算路径。
 ncu --metrics smsp__pipe_tensor_cycles_active.avg.pct_of_peak_sustained_active ./my_program
+
+# 统计 predicated-on 的 tensor op，辅助确认 MMA 指令没有被谓词大量屏蔽。
 ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--section">
+                        <div class="arch-extra-section arch-extra-section--scale-memory arch-section-anchor" id="arch-ampere-ga100-scale-memory">
                             <h3 class="arch-sub-title">Ampere (GA100) 规模+存储层次</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1592,7 +1921,7 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--a100-vs-v100">
+                        <div class="arch-extra-section arch-extra-section--a100-vs-v100 arch-section-anchor" id="arch-ampere-ga100-a100-vs-v100">
                             <h3 class="arch-sub-title">Ampere (GA100) A100 vs V100 性能提升</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/a100_vs_v100.png" alt="" style="max-width:100%; height:auto;"></div>
@@ -1600,7 +1929,7 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-ampere-ga100-references">
                             <h3 class="arch-sub-title">Ampere (GA100) References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1620,6 +1949,22 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
 
             <section id="nv-arch-4-ga102" class="content-section">
                 <h1 class="section-title">Ampere (GA102)</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-ampere-ga102">概览</a></li>
+                        <li><a href="#arch-ampere-ga102-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-ampere-ga102-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-ampere-ga102-notes">说明</a></li>
+                        <li><a href="#arch-ampere-ga102-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga102-tensor-core-consumer-ampere-tensor-core">消费级 Ampere Tensor Core</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga102-tensor-core-tf32-fp16-amp-training">TF32/FP16 AMP 训练路径</a></li>
+                        <li class="toc-child"><a href="#arch-ampere-ga102-tensor-core-inference-graphics-ai">推理与图形 AI</a></li>
+                        <li><a href="#arch-ampere-ga102-scale-memory">规模+存储层次</a></li>
+                        <li><a href="#arch-ampere-ga102-sm-architecture">SM 微架构图</a></li>
+                        <li><a href="#arch-ampere-ga102-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1630,12 +1975,15 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                             <span class="paper-tag">RTX 30</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-ampere-ga102-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/ga102_full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-ampere-ga102-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">FP32 Core</span></div>
@@ -1644,7 +1992,7 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-ampere-ga102-notes">
                                     <ul class="arch-list">
                                     <li>4 个 PB。</li>
                                     <li>出现了 FP32/INT32 混合的 core，使得 FP32 峰值性能翻倍，但是这个峰值也更难达到，因为达到峰值意味着不用到 FP32/INT32 core 的 INT32 部分。</li>
@@ -1656,8 +2004,10 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-ampere-ga102-tensor-core">
                             <h3 class="arch-sub-title">Ampere (GA102) Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga102-tensor-core-consumer-ampere-tensor-core">
+                            <h4 class="arch-feature-title">消费级 Ampere Tensor Core</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 3 代 Tensor Core 的消费级 Ampere 版本，服务 RTX 30 系列的训练、推理和图形 AI 功能。</li>
@@ -1667,33 +2017,62 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                                     <li>与 GA100 差异：GA102 更偏图形和消费级 AI workload，Tensor Core 能力服务 DLSS、推理和混合精度训练；GA100 则额外强化 FP64、MIG 和数据中心特性。</li>
                                     <li>性能特点：TF32 让 FP32 矩阵乘更容易吃到 Tensor Core，FP16/BF16/INT8 则覆盖深度学习训练和推理的主流精度。</li>
                                     </ul>
-                                    <p>在 RTX 30 上做模型训练或本地推理时，最常见的收益来自 TF32、FP16 AMP 和 INT8 推理，而不是 GA100 的 FP64 Tensor Core。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import torch
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga102-tensor-core-tf32-fp16-amp-training">
+                            <h4 class="arch-feature-title">TF32/FP16 AMP 训练路径</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>在 RTX 30 上做模型训练或本地推理时，最常见的收益来自 TF32、FP16 AMP 和 INT8 推理，而不是 GA100 的 FP64 Tensor Core。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># PyTorch 负责调用 CUDA/cuDNN/cuBLAS，底层会按精度策略选择 Tensor Core kernel。
+import torch
+
+# 这里用 CrossEntropyLoss 做分类训练示例。
 import torch.nn as nn
 
-torch.set_float32_matmul_precision(&quot;high&quot;)  # 允许 TF32 路径
+# GA102 支持 TF32 Tensor Core。这个设置允许 FP32 matmul 在可接受误差下走 TF32 路径，
+# 对很多深度学习训练来说，能在几乎不改模型代码的情况下提升吞吐。
+torch.set_float32_matmul_precision(&quot;high&quot;)
+
+# GradScaler 用于混合精度训练时动态放大 loss，避免 FP16 梯度过小而下溢为 0。
 scaler = torch.cuda.amp.GradScaler()
 
 for images, labels in train_loader:
+    # 每个 iteration 开始前清空上一轮梯度，避免梯度跨 batch 累加。
     optimizer.zero_grad()
 
+    # autocast 会把适合低精度的算子自动切到 FP16，
+    # 矩阵乘、卷积等密集计算因此更容易使用 Tensor Core。
     with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
+        # 前向传播：模型内部的 GEMM/Conv 是 Tensor Core 最主要的加速来源。
         logits = model(images)
+
+        # loss 通常会在 autocast 策略下选择合适精度，避免关键归约过度损失精度。
         loss = nn.CrossEntropyLoss()(logits, labels)
 
+    # scale(loss) 先放大 loss 再反向传播，减少 FP16 梯度下溢风险。
     scaler.scale(loss).backward()
+
+    # step 会在内部先 unscale 梯度，并在检测到 inf/nan 时跳过本次参数更新。
     scaler.step(optimizer)
+
+    # 根据本轮是否溢出动态调整缩放因子。
     scaler.update()</code></pre></div>
-                                    <ul class="arch-list">
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ampere-ga102-tensor-core-inference-graphics-ai">
+                            <h4 class="arch-feature-title">推理与图形 AI</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>训练侧：FP16 AMP 通常比纯 FP32 更省显存，但要配合 GradScaler 避免梯度下溢。</li>
                                     <li>推理侧：TensorRT FP16/INT8 更容易吃满 Tensor Core；小 batch、短序列时反而可能被 launch overhead 和访存拖住。</li>
                                     <li>图形侧：DLSS 这类神经网络渲染 workload 会直接利用 Tensor Core，但这部分由驱动和 SDK 封装，应用开发者通常不直接写 MMA。</li>
                                     </ul>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--section">
+                        <div class="arch-extra-section arch-extra-section--scale-memory arch-section-anchor" id="arch-ampere-ga102-scale-memory">
                             <h3 class="arch-sub-title">Ampere (GA102) 规模+存储层次</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1707,7 +2086,7 @@ for images, labels in train_loader:
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--sm">
+                        <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-ampere-ga102-sm-architecture">
                             <h3 class="arch-sub-title">Ampere (GA102) SM 微架构图</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/1-GA102_sm.png" alt="" style="max-width:100%; height:auto;"></div>
@@ -1715,7 +2094,7 @@ for images, labels in train_loader:
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-ampere-ga102-references">
                             <h3 class="arch-sub-title">Ampere (GA102) References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1732,6 +2111,21 @@ for images, labels in train_loader:
 
             <section id="nv-arch-5-ada" class="content-section">
                 <h1 class="section-title">Ada Lovelace</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-ada">概览</a></li>
+                        <li><a href="#arch-ada-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-ada-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-ada-notes">说明</a></li>
+                        <li><a href="#arch-ada-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-ada-tensor-core-ada-tensor-core-positioning">Ada Tensor Core 定位</a></li>
+                        <li class="toc-child"><a href="#arch-ada-tensor-core-fp8-transformer-engine">FP8 与 Transformer Engine</a></li>
+                        <li class="toc-child"><a href="#arch-ada-tensor-core-generative-ai-inference">生成式 AI 推理路径</a></li>
+                        <li><a href="#arch-ada-scale-memory-ad102">规模+存储层次 (AD102)</a></li>
+                        <li><a href="#arch-ada-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1743,12 +2137,15 @@ for images, labels in train_loader:
                             <span class="paper-tag">FP8 / DLSS 3</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-ada-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/ad102-full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-ada-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">64</span><span class="sm-label">FP32 Core</span></div>
@@ -1757,7 +2154,7 @@ for images, labels in train_loader:
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-ada-notes">
                                     <p><strong>消费级旗舰。</strong>延续 Ampere 的双数据通路（64 专用 FP32 + 64 Flex FP32/INT32），合计 128 FP32 Core。TSMC 4N 工艺。</p>
                                     <ul class="arch-list">
                                     <li><strong>Tensor Core 4.0：</strong>新增 FP8 路径，并通过 Transformer Engine 软件栈服务生成式 AI 和推理场景。</li>
@@ -1773,8 +2170,10 @@ for images, labels in train_loader:
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-ada-tensor-core">
                             <h3 class="arch-sub-title">Ada Lovelace Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ada-tensor-core-ada-tensor-core-positioning">
+                            <h4 class="arch-feature-title">Ada Tensor Core 定位</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 4 代 Tensor Core 的 Ada 版本，重点面向消费级 RTX、创作、推理和 DLSS 工作负载。</li>
@@ -1785,11 +2184,29 @@ for images, labels in train_loader:
                                     <li>与 Hopper 区别：Ada 更偏图形和边缘/工作站推理，不强调 Hopper 的 wgmma、TMA、Thread Block Cluster 等数据中心协作机制。</li>
                                     <li>典型场景：DLSS、生成式 AI 推理、低精度矩阵乘和创作应用中的神经网络加速。</li>
                                     </ul>
-                                    <p>Ada 的 FP8 更适合被框架或推理引擎托管，而不是在应用里手动管理每个 tensor 的缩放。工程上要重点观察显存带宽、KV cache 和 batch/sequence shape，而不是只看标称 TFLOPS。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import torch
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ada-tensor-core-fp8-transformer-engine">
+                            <h4 class="arch-feature-title">FP8 与 Transformer Engine</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Ada 的 FP8 更适合被框架或推理引擎托管，而不是在应用里手动管理每个 tensor 的缩放。工程上要重点观察显存带宽、KV cache 和 batch/sequence shape，而不是只看标称 TFLOPS。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-ada-tensor-core-generative-ai-inference">
+                            <h4 class="arch-feature-title">生成式 AI 推理路径</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># PyTorch 会把高层算子调度到 CUDA/cuDNN/cuBLAS 等后端。
+import torch
 
+# 允许 FP32 matmul 使用 Tensor Core 友好的 TF32 路径。
+# Ada 上训练/推理常常无需手写 MMA，只要框架和 kernel 支持就能触发 Tensor Core。
 torch.set_float32_matmul_precision(&quot;high&quot;)
+
+# 推理阶段用 autocast 把适合低精度的算子切到 FP16。
+# 这类 diffusion UNet 里的卷积、attention projection、MLP 都是 Tensor Core 的主要受益点。
 with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
+    # latents 是扩散模型当前噪声状态，timestep 表示去噪步数，
+    # text_embedding 是文本编码器输出的条件信息。
     image = diffusion_unet(latents, timestep, text_embedding)</code></pre></div>
                                     <ul class="arch-list">
                                     <li>生成式 AI 推理中，Tensor Core 主要加速 attention projection、MLP 和卷积/矩阵乘密集部分。</li>
@@ -1798,9 +2215,10 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                                     </ul>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--ad102">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-ad102 arch-section-anchor" id="arch-ada-scale-memory-ad102">
                             <h3 class="arch-sub-title">Ada Lovelace 规模+存储层次 (AD102)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1811,7 +2229,7 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-ada-references">
                             <h3 class="arch-sub-title">Ada Lovelace References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1828,6 +2246,23 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
 
             <section id="nv-arch-6-hopper" class="content-section">
                 <h1 class="section-title">Hopper</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-hopper">概览</a></li>
+                        <li><a href="#arch-hopper-chip-overview">芯片总览图</a></li>
+                        <li><a href="#arch-hopper-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-hopper-notes">说明</a></li>
+                        <li><a href="#arch-hopper-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-hopper-tensor-core-datacenter-gen4-tensor-core">数据中心第 4 代 Tensor Core</a></li>
+                        <li class="toc-child"><a href="#arch-hopper-tensor-core-wgmma-async-execution">WGMMA 与异步执行</a></li>
+                        <li class="toc-child"><a href="#arch-hopper-tensor-core-fp8-transformer-engine">FP8 与 Transformer Engine</a></li>
+                        <li class="toc-child"><a href="#arch-hopper-tensor-core-multi-gpu-system-bottlenecks">多 GPU 训练与系统瓶颈</a></li>
+                        <li><a href="#arch-hopper-scale-memory-gh100">规模+存储层次 (GH100)</a></li>
+                        <li><a href="#arch-hopper-cuda-kernel">CUDA Kernel</a></li>
+                        <li><a href="#arch-hopper-references">References</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -1839,12 +2274,15 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                             <span class="paper-tag">Transformer Engine</span>
                         </div>
 
+                        <div class="arch-top-section arch-section-anchor" id="arch-hopper-chip-overview" aria-label="芯片总览图">
                         <div class="arch-notes" style="margin-top:12px">
                             <div class="full-width-figure"><img src="images/gh100-full.png" alt="" style="max-width:100%; height:auto;"></div>
                         </div>
+                        </div>
+
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-hopper-sm-config">
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Warp Scheduler</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">4</span><span class="sm-label">Dispatch Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">128</span><span class="sm-label">FP32 Core</span></div>
@@ -1854,7 +2292,7 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                                     <div class="arch-sm-item"><span class="sm-value">32</span><span class="sm-label">LD/ST Unit</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">16</span><span class="sm-label">SFU</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-hopper-notes">
                                     <p><strong>大模型时代的数据中心旗舰。</strong></p>
                                     <ul class="arch-list">
                                     <li>8 个 GPC，66 个 TPC，每个 TPC 有两个 SM；一共 132 个 SM。（H100 SXM5 参数）</li>
@@ -1875,8 +2313,10 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-hopper-tensor-core">
                             <h3 class="arch-sub-title">Hopper Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-hopper-tensor-core-datacenter-gen4-tensor-core">
+                            <h4 class="arch-feature-title">数据中心第 4 代 Tensor Core</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 4 代 Tensor Core 的数据中心版本，核心目标是 Transformer 大模型训练和推理。</li>
@@ -1887,39 +2327,80 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                                     <li>TMA 配合：Tensor Memory Accelerator 支持异步多维张量搬运，让数据准备和 Tensor Core 计算更容易流水化。</li>
                                     <li>性能特征：H800/H100 级别 FP8 峰值约为 FP16 的 2 倍，稀疏 FP8 可继续利用 2:4 稀疏路径放大有效吞吐。</li>
                                     </ul>
-                                    <p>Hopper 的编程模型从“一个 warp 做 MMA”扩展到“一个 warp group 做更大的异步 MMA”。典型优化思路是 TMA 异步搬运下一块 tile，同时 WGMMA 计算当前 tile，用 pipeline 隐藏访存。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-hopper-tensor-core-wgmma-async-execution">
+                            <h4 class="arch-feature-title">WGMMA 与异步执行</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Hopper 的编程模型从“一个 warp 做 MMA”扩展到“一个 warp group 做更大的异步 MMA”。典型优化思路是 TMA 异步搬运下一块 tile，同时 WGMMA 计算当前 tile，用 pipeline 隐藏访存。</p>
                                     <p>Volta 到 Ampere 更常见的是同步阶段式写法：搬运、同步、计算、同步、存储，阶段边界清楚，但 Tensor Core 很容易等数据。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 传统同步模式：load -&gt; sync -&gt; compute -&gt; sync -&gt; store
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 传统同步模式：load -&gt; sync -&gt; compute -&gt; sync -&gt; store。
+// Volta/Ampere 上大量 kernel 都采用这种阶段式写法，逻辑清楚但阶段之间会互相等待。
+
+// 阶段 1：把下一块矩阵 tile 从 global memory 搬到 shared memory。
+// 在同步模型里，搬运期间 Tensor Core 通常没有开始计算当前 tile。
 load_data_to_shared_memory();
+
+// 等待整个线程块完成 shared memory 写入，保证后续计算读到完整 tile。
 __syncthreads();
 
+// 阶段 2：从 shared memory 读取 tile，并调用 MMA/WMMA 使用 Tensor Core 计算。
 compute_mma();
+
+// 再次同步，保证计算完成且 shared memory 不会被下一阶段提前覆盖。
 __syncthreads();
 
+// 阶段 3：把当前 tile 的输出结果写回 global memory。
 store_result();</code></pre></div>
                                     <p>Hopper 的关键变化是把数据搬运和计算流水化。下面这个示意保留了 <code>cp_async</code> 的写法，便于和 Volta/Ampere 的同步模式对照；实际 H100 上还会结合 TMA、WGMMA 和 barrier 机制进一步组织 pipeline。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">__shared__ half smem_a[2][16][64];
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 双缓冲 shared memory：stage 0 和 stage 1 交替使用。
+// 一个 stage 参与当前 WGMMA 计算，另一个 stage 预取下一块 tile。
+__shared__ half smem_a[2][16][64];
+
+// 当前计算使用的缓冲区编号；stage ^ 1 表示另一个缓冲区。
 int stage = 0;
 
+// 预取第一个 tile。这样进入主循环时，当前 stage 已经有数据可供 Tensor Core 使用。
 cp_async(smem_a[stage], global_mem_a, 16 * 64 * sizeof(half));
 
 for (int k = 0; k &lt; K; k += 16) {
+    // 异步预取下一块 K tile 到另一个缓冲区。
+    // 理想情况下，这次 global -&gt; shared 的搬运会和下面的 WGMMA 计算重叠。
     cp_async(smem_a[stage ^ 1],
              global_mem_a + (k + 16) * 64,
              16 * 64 * sizeof(half));
 
-    wgmma_mma(smem_a[stage], ...);  // warp-group MMA
+    // 使用当前 stage 中已经准备好的 tile 执行 warp-group MMA。
+    // WGMMA 让 128 个线程协作完成更大的矩阵乘，比单 warp MMA 协作粒度更大。
+    wgmma_mma(smem_a[stage], ...);
+
+    // 切换到另一个缓冲区，下一轮循环会计算刚刚预取的 tile。
     stage ^= 1;
+
+    // 等待异步搬运完成，避免下一轮 WGMMA 读到未完成的数据。
     cp_async_wait();
 }</code></pre></div>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 伪代码：表达 Hopper 上 TMA + WGMMA 的流水化关系
+// TMA 负责高维 tensor tile 的异步搬运，WGMMA 负责 Tensor Core 计算。
+
+// 先把下一块 tile 异步搬到 shared memory，为主循环预热 pipeline。
 tma_async_load(smem[next], global_tile[next]);
 
 for (int k = 0; k &lt; K; k += tile_k) {
+    // 用当前 shared memory tile 发起异步 WGMMA。
+    // async 表示发射后线程可以继续做数据准备，而不是立即等待结果。
     wgmma_mma_async(acc, smem[cur].a, smem[cur].b);
+
+    // 同时用 TMA 预取下一块 global tile，实现搬运和计算重叠。
     tma_async_load(smem[next], global_tile[next]);
+
+    // 提交本轮 WGMMA group，告诉硬件这一批异步矩阵乘可以开始排队执行。
     wgmma_commit_group();
+
+    // 等待必要的 WGMMA group 完成，保证 accumulator 可安全使用或复用资源。
     wgmma_wait_group();
+
+    // 交换当前 tile 和下一 tile 的角色，形成稳定的流水线。
     swap(cur, next);
 }</code></pre></div>
                                     <ul class="arch-list">
@@ -1927,53 +2408,98 @@ for (int k = 0; k &lt; K; k += tile_k) {
                                     <li>TMA 适合高维 tensor tile 搬运，可以减少线程手工搬运数据的开销。</li>
                                     <li>大模型训练里，Transformer Engine 负责 FP8 缩放和精度选择；kernel 侧则要让 FP8 GEMM、通信和 layernorm/softmax 等非 GEMM 部分匹配起来。</li>
                                     </ul>
-                                    <p>FP8 常见有 E4M3 和 E5M2 两种编码倾向。E4M3 尾数多一点，适合权重/激活；E5M2 指数多一点，动态范围更宽，适合梯度等范围更大的数据。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">struct fp8_e4m3 {
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-hopper-tensor-core-fp8-transformer-engine">
+                            <h4 class="arch-feature-title">FP8 与 Transformer Engine</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>FP8 常见有 E4M3 和 E5M2 两种编码倾向。E4M3 尾数多一点，适合权重/激活；E5M2 指数多一点，动态范围更宽，适合梯度等范围更大的数据。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// FP8 E4M3 的位布局示意。
+// 1 位符号、4 位指数、3 位尾数：尾数较多，精度略好，常用于权重和 activation。
+struct fp8_e4m3 {
     uint8_t sign : 1;
     uint8_t exponent : 4;
     uint8_t mantissa : 3;
 };
 
+// FP8 E5M2 的位布局示意。
+// 1 位符号、5 位指数、2 位尾数：指数范围更大，更适合梯度或数值范围更宽的 tensor。
 struct fp8_e5m2 {
     uint8_t sign : 1;
     uint8_t exponent : 5;
     uint8_t mantissa : 2;
 };</code></pre></div>
                                     <p>框架侧通常通过 Transformer Engine 托管 FP8 缩放和格式选择：</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import transformer_engine as te
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># NVIDIA Transformer Engine，负责托管 FP8 layer 和缩放策略。
+import transformer_engine as te
+
+# recipe 描述 FP8 格式、缩放更新频率等策略。
 from transformer_engine.common import recipe
 
+# DelayedScaling 会延迟更新 scale，减少每一步都重算缩放因子的开销。
 fp8_recipe = recipe.DelayedScaling(
+    # 给动态范围预留的额外指数空间；0 表示不额外保守放大范围。
     margin=0,
+
+    # 每 1 次 iteration 更新一次缩放统计，响应最快但开销也更高。
     interval=1,
+
+    # HYBRID 通常让前向使用 E4M3、反向使用 E5M2。
     fp8_format=recipe.Format.HYBRID,
 )
 
+# te.Linear 是 Transformer Engine 包装过的线性层，可在 fp8_autocast 下使用 FP8 Tensor Core。
 layer = te.Linear(768, 3072, bias=True)
 
+# fp8_autocast 开启 FP8 执行区域。
+# 区域内支持 FP8 的 TE layer 会自动处理 cast、scale、amax 统计和反量化。
 with te.fp8_autocast(enabled=True, fp8_recipe=fp8_recipe):
+    # hidden_states 进入线性层后，矩阵乘部分可使用 Hopper FP8 Tensor Core。
     output = layer(hidden_states)</code></pre></div>
-                                    <p>多 GPU 训练时，Tensor Core 加速的是每张 GPU 上的局部 GEMM；跨卡吞吐还取决于 NCCL all-reduce、并行策略和通信/计算重叠。</p>
-                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python">import torch.distributed as dist
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-hopper-tensor-core-multi-gpu-system-bottlenecks">
+                            <h4 class="arch-feature-title">多 GPU 训练与系统瓶颈</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>多 GPU 训练时，Tensor Core 加速的是每张 GPU 上的局部 GEMM；跨卡吞吐还取决于 NCCL all-reduce、并行策略和通信/计算重叠。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># 分布式通信初始化和 collective 操作入口。
+import torch.distributed as dist
+
+# PyTorch 数据并行封装。
 from torch.nn.parallel import DistributedDataParallel as DDP
 
+# 初始化 NCCL 后端。NCCL 负责 GPU 间 all-reduce、broadcast 等高吞吐通信。
 dist.init_process_group(backend=&quot;nccl&quot;)
+
+# 简化示例里直接用 rank 作为 local_rank；真实多机训练通常从环境变量 LOCAL_RANK 读取。
 local_rank = dist.get_rank()
 
+# 把模型移动到当前进程绑定的 GPU。
 model = model.cuda(local_rank)
+
+# DDP 会在 backward 后对各 GPU 的梯度做 all-reduce，保证参数更新一致。
 model = DDP(model, device_ids=[local_rank])
 
+# 每张 GPU 上的局部前向仍然可以用 FP16 Tensor Core 加速。
+# 但整体 step 时间还会受到跨卡梯度同步和通信/计算重叠效果影响。
 with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
+    # 局部 batch 的前向传播，GEMM/Conv/attention projection 会走 Tensor Core。
     output = model(inputs)
+
+    # 根据模型输出和标签计算 loss。
     loss = criterion(output, target)
 
+# backward 期间 DDP 会触发梯度 bucket 的 all-reduce。
 loss.backward()
+
+# 所有梯度同步完成后，每个进程执行相同的参数更新。
 optimizer.step()</code></pre></div>
                         </div>
                         </div>
+                        </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--gh100">
+                        <div class="arch-extra-section arch-extra-section--scale-memory-gh100 arch-section-anchor" id="arch-hopper-scale-memory-gh100">
                             <h3 class="arch-sub-title">Hopper 规模+存储层次 (GH100)</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -1986,7 +2512,7 @@ optimizer.step()</code></pre></div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--cuda-kernel">
+                        <div class="arch-extra-section arch-extra-section--cuda-kernel arch-section-anchor" id="arch-hopper-cuda-kernel">
                             <h3 class="arch-sub-title">Hopper CUDA Kernel</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>CUDA Kernel 之前是三个层次：Grid、Thread Block 和 Thread，分别对应整个 GPU、SM 和 CUDA Core，而这一代引入了 Thread Block Cluster 的层次，变成了四个层次：Grid、Thread Block Cluster、Thread Block 和 Thread。其中 Thread Block 对应 GPC，每个 GPC 有多个 TPC，每个 TPC 有多个 SM。</p>
@@ -1994,7 +2520,7 @@ optimizer.step()</code></pre></div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="arch-hopper-references">
                             <h3 class="arch-sub-title">Hopper References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -2012,6 +2538,18 @@ optimizer.step()</code></pre></div>
 
             <section id="nv-arch-7-blackwell" class="content-section">
                 <h1 class="section-title">Blackwell</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-blackwell">概览</a></li>
+                        <li><a href="#arch-blackwell-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-blackwell-notes">说明</a></li>
+                        <li><a href="#arch-blackwell-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-blackwell-tensor-core-gen5-tensor-core-tcgen05">第 5 代 Tensor Core 与 tcgen05.mma</a></li>
+                        <li class="toc-child"><a href="#arch-blackwell-tensor-core-low-precision-block-scaling">低精度与块缩放格式</a></li>
+                        <li class="toc-child"><a href="#arch-blackwell-tensor-core-tensor-memory-tmem">Tensor Memory (TMEM)</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -2024,12 +2562,12 @@ optimizer.step()</code></pre></div>
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-blackwell-sm-config">
                                     <div class="arch-sm-item highlight"><span class="sm-value">4 (5th)</span><span class="sm-label">Tensor Core</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">256KB</span><span class="sm-label">TMEM (新增)</span></div>
                                     <div class="arch-sm-item"><span class="sm-value">228KB</span><span class="sm-label">SMEM + L1</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-blackwell-notes">
                                     <p><strong>双芯片封装，2080 亿晶体管。</strong>INT32 和 FP32 执行路径统一，INT32 Core 数量与 FP32 持平。</p>
                                     <ul class="arch-list">
                                     <li><strong>Tensor Core 5.0</strong>：新增 FP4/FP6、块缩放格式和 <code>tcgen05.mma</code>，低精度推理吞吐进一步提升。</li>
@@ -2045,38 +2583,68 @@ optimizer.step()</code></pre></div>
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-blackwell-tensor-core">
                             <h3 class="arch-sub-title">Blackwell Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-blackwell-tensor-core-gen5-tensor-core-tcgen05">
+                            <h4 class="arch-feature-title">第 5 代 Tensor Core 与 tcgen05.mma</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：第 5 代 Tensor Core，重点从 FP8 继续下探到 FP6、FP4 和 microscaling 格式。</li>
-                                    <li>SM 组织：每个 SM 4 个 Tensor Core，并新增面向 Tensor Core 的专用 Tensor Memory。</li>
+                                    <li><code>tcgen05.mma</code>：Blackwell SM100 引入的新 MMA 指令族，覆盖传统类型和 4/6/8-bit 浮点；它把更多 MMA 控制暴露给硬件指令路径，目标是在部分路径上相对 Hopper WGMMA 达到 2x 到 4x 吞吐，并降低 WGMMA 之后的调度和数据路径开销。</li>
+                                    <li>Transformer Engine：第二代 Transformer Engine 利用 FP4 精度提升 LLM 训练和推理效率，尤其适合 MoE 和超大模型。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-blackwell-tensor-core-low-precision-block-scaling">
+                            <h4 class="arch-feature-title">低精度与块缩放格式</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>新数据类型：支持 FP4、FP6、FP8、FP16、BF16、TF32、FP64、INT8、INT4 等路径。</li>
                                     <li>块缩放格式：MXFP8/MXFP6/MXFP4 和 NVFP4 通过小块共享缩放因子，提高低比特格式的可用动态范围。</li>
-                                    <li><code>tcgen05.mma</code>：Blackwell SM100 引入的新 MMA 指令族，覆盖传统类型和 4/6/8-bit 浮点，部分路径相对 Hopper WGMMA 达到 2x 到 4x 吞吐。</li>
-                                    <li>TMEM 作用：Tensor Core 可从 256KB Tensor Memory 读写，降低与通用寄存器和 Shared Memory 的资源竞争。</li>
-                                    <li>Transformer Engine：第二代 Transformer Engine 利用 FP4 精度提升 LLM 训练和推理效率，尤其适合 MoE 和超大模型。</li>
+                                    <li>FP4 适合推理和部分经过算法适配的训练路径；如果缩放、校准或 outlier 处理没做好，低比特格式会先损失精度而不是提升有效性能。</li>
                                     </ul>
                                     <p>Blackwell 的低精度不是简单把 FP8 继续砍半。FP4/NVFP4 需要缩放因子配合，小块共享 scale，把极低位宽和可用动态范围绑在一起。</p>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">// 概念示意：NVFP4 不是裸 4-bit 值，而是值 + 分块缩放
 struct Nvfp4Block {
+    // 一个小 block 共享同一个 scale，用来把 4-bit 编码映射回更合适的数值范围。
+    // 没有 scale 的裸 FP4 动态范围太窄，很难直接覆盖大模型里的权重/激活分布。
     float block_scale;
-    uint8_t packed_values[8];  // 16 个 4-bit value
+
+    // 16 个 4-bit value 打包成 8 个 byte。
+    // Tensor Core 读取时会结合 block_scale 解码成参与 MMA 的低精度数值。
+    uint8_t packed_values[8];
 };</code></pre></div>
                                     <p>如果从通用量化视角看，FP4/INT4 通常还需要 per-block 或 per-row 缩放和偏移信息。没有这些辅助参数，4-bit 值本身能表达的动态范围太窄。</p>
                                     <div class="arch-code-block"><div class="arch-code-label">CPP</div><pre><code class="language-cpp">struct FP4QuantizedMatrix {
-    uint8_t packed_values[16][8];  // 每行 16 个 4-bit value，打包成 8 byte
-    float scale_factors[16];       // 每行或每个 block 的缩放因子
-    float min_vals[16];            // 非对称量化时的偏移
+    // 每行 16 个 4-bit value，打包成 8 byte。
+    // 打包能降低显存占用和带宽压力，但计算前需要按硬件格式解码。
+    uint8_t packed_values[16][8];
+
+    // 每行或每个 block 的缩放因子。
+    // scale_factors 决定 4-bit 编码对应的实际数值跨度，是低比特量化能否保持精度的关键。
+    float scale_factors[16];
+
+    // 非对称量化时的偏移，用来表示不以 0 为中心的数值分布。
+    // 对权重分布较偏或 activation 有明显偏移的场景，这类 offset 能减少量化误差。
+    float min_vals[16];
 };
 
 // 反量化概念：
+// 1. 从 packed_values 中取出 4-bit 编码。
+// 2. decode_4bit 把编码还原到一个小范围的低精度值。
+// 3. min_val 和 scale 把低精度值映射回近似 FP32 的实际范围。
 // value_fp32 = scale * (min_val + decode_4bit(value))</code></pre></div>
-                                    <ul class="arch-list">
-                                    <li><code>tcgen05.mma</code> 把更多 MMA 控制暴露给新指令族，目标是降低 Hopper WGMMA 之后的调度和数据路径开销。</li>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-blackwell-tensor-core-tensor-memory-tmem">
+                            <h4 class="arch-feature-title">Tensor Memory (TMEM)</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>SM 组织：每个 SM 4 个 Tensor Core，并新增面向 Tensor Core 的专用 Tensor Memory。</li>
+                                    <li>TMEM 作用：Tensor Core 可从 256KB Tensor Memory 读写，降低与通用寄存器和 Shared Memory 的资源竞争。</li>
                                     <li>TMEM 可以看成 Tensor Core 周围的专用工作区，减少 Tensor Core 与通用寄存器/shared memory 的争用。</li>
-                                    <li>FP4 适合推理和部分经过算法适配的训练路径；如果缩放、校准或 outlier 处理没做好，低比特格式会先损失精度而不是提升有效性能。</li>
                                     </ul>
+                        </div>
                         </div>
                         </div>
 
@@ -2088,6 +2656,18 @@ struct Nvfp4Block {
 
             <section id="nv-arch-8-rubin" class="content-section">
                 <h1 class="section-title">Rubin</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#arch-rubin">概览</a></li>
+                        <li><a href="#arch-rubin-sm-config">SM 配置</a></li>
+                        <li><a href="#arch-rubin-notes">说明</a></li>
+                        <li><a href="#arch-rubin-tensor-core">Tensor Core 小结</a></li>
+                        <li class="toc-child"><a href="#arch-rubin-tensor-core-roadmap-positioning">路线图定位</a></li>
+                        <li class="toc-child"><a href="#arch-rubin-tensor-core-nvfp4-third-gen-transformer-engine">NVFP4 与第三代 Transformer Engine</a></li>
+                        <li class="toc-child"><a href="#arch-rubin-tensor-core-rack-scale-system-view">Rack-scale 系统视角</a></li>
+                    </ul>
+                </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
@@ -2100,10 +2680,10 @@ struct Nvfp4Block {
                         </div>
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor" id="arch-rubin-sm-config">
                                     <div class="arch-sm-item highlight"><span class="sm-value">Enhanced 5th</span><span class="sm-label">Tensor Core</span></div>
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor" id="arch-rubin-notes">
                                     <ul class="arch-list">
                                     <li><strong>下一代数据中心平台，预计 2026 下半年。</strong></li>
                                     <li><strong>Tensor Core：</strong>路线图强调增强的低精度 Tensor Core、NVFP4 和第三代 Transformer Engine。</li>
@@ -2120,24 +2700,41 @@ struct Nvfp4Block {
                             </div>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--tensor-core">
+                        <div class="arch-extra-section arch-extra-section--tensor-core arch-section-anchor" id="arch-rubin-tensor-core">
                             <h3 class="arch-sub-title">Rubin Tensor Core 小结</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-rubin-tensor-core-roadmap-positioning">
+                            <h4 class="arch-feature-title">路线图定位</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>代际定位：Rubin 属于 NVIDIA 已公布的下一代数据中心路线图，当前信息以公开发布和路线图为准。</li>
                                     <li>Tensor Core 方向：官方表述为增强的第 5 代 Tensor Core，而不是完全独立的新一代编号；重点强化 NVFP4 和 FP8 低精度路径。</li>
+                                    <li>写法注意：Rubin 仍处于路线图阶段，架构细节、SM 内部组织和最终产品规格应保留“预计/公开信息”口径。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-rubin-tensor-core-nvfp4-third-gen-transformer-engine">
+                            <h4 class="arch-feature-title">NVFP4 与第三代 Transformer Engine</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>Transformer Engine：第三代 Transformer Engine 引入硬件自适应压缩，面向 agentic AI 和长上下文推理。</li>
                                     <li>NVFP4：继续沿用 Blackwell 开始强调的 4-bit narrow precision，通过缩放机制保持更可用的数值范围。</li>
+                                    <li>从软件演进看，Rubin 大概率延续 Transformer Engine 托管低精度策略，应用层不应假设裸 FP4 可以无损替换 BF16/FP16。</li>
+                                    <li>从部署角度看，NVFP4 更像“模型、缩放策略、kernel、互联”共同设计后的格式，而不是独立的数据类型选择。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="arch-rubin-tensor-core-rack-scale-system-view">
+                            <h4 class="arch-feature-title">Rack-scale 系统视角</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
                                     <li>算力指标：Rubin GPU 公开指标为 50 PFLOPS NVFP4 compute，面向推理效率最大化。</li>
                                     <li>系统形态：Vera Rubin NVL72 通过 NVLink 6 和 HBM4 组织为 rack-scale 平台，Tensor Core 吞吐需要与互联、显存带宽一起看。</li>
-                                    <li>写法注意：Rubin 仍处于路线图阶段，架构细节、SM 内部组织和最终产品规格应保留“预计/公开信息”口径。</li>
                                     </ul>
                                     <p>Rubin 阶段更应该从系统角度理解 Tensor Core：单 GPU 的 NVFP4 峰值只是一个指标，真正影响大模型吞吐的是 NVLink、HBM4、并行策略、KV cache 和专家路由等因素一起作用。</p>
                                     <ul class="arch-list">
-                                    <li>从软件演进看，Rubin 大概率延续 Transformer Engine 托管低精度策略，应用层不应假设裸 FP4 可以无损替换 BF16/FP16。</li>
-                                    <li>从部署角度看，NVFP4 更像“模型、缩放策略、kernel、互联”共同设计后的格式，而不是独立的数据类型选择。</li>
                                     <li>当前公开资料仍是路线图口径，具体 MMA 指令、SM 内部数据通路和 TMEM/缓存细节需要等正式白皮书或编程指南确认。</li>
                                     </ul>
+                        </div>
                         </div>
                         </div>
 

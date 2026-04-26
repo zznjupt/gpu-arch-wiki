@@ -80,6 +80,58 @@ def slugify(text):
     return slug or 'section'
 
 
+SECTION_SLUG_ALIASES = {
+    '芯片总览图': 'chip-overview',
+    'SM 配置': 'sm-config',
+    '说明': 'notes',
+    'Tensor Core 小结': 'tensor-core',
+    '第 5 代 Tensor Core 与 tcgen05.mma': 'gen5-tensor-core-tcgen05',
+    '低精度与块缩放格式': 'low-precision-block-scaling',
+    'Tensor Memory (TMEM)': 'tensor-memory-tmem',
+    '第 1 代 Tensor Core 与 4x4x4 MMA': 'gen1-tensor-core-4x4x4-mma',
+    'FP16 输入与 FP32 累加': 'fp16-input-fp32-accumulation',
+    '4x4x4 MMA 执行流程': '4x4x4-mma-flow',
+    'WMMA 编程接口': 'wmma-programming',
+    '第 2 代 Tensor Core 与推理扩展': 'gen2-tensor-core-inference',
+    'INT8/INT4/Binary 量化路径': 'int8-int4-binary-quantization',
+    'TensorRT 校准与部署': 'tensorrt-calibration-deployment',
+    '第 3 代 Tensor Core 与 GA100 定位': 'gen3-tensor-core-ga100',
+    'TF32/BF16/FP64 数据类型': 'tf32-bf16-fp64-types',
+    '2:4 结构化稀疏': '2-4-structured-sparsity',
+    'Kernel 调优与底层 MMA': 'kernel-tuning-low-level-mma',
+    '消费级 Ampere Tensor Core': 'consumer-ampere-tensor-core',
+    'TF32/FP16 AMP 训练路径': 'tf32-fp16-amp-training',
+    '推理与图形 AI': 'inference-graphics-ai',
+    'Ada Tensor Core 定位': 'ada-tensor-core-positioning',
+    'FP8 与 Transformer Engine': 'fp8-transformer-engine',
+    '生成式 AI 推理路径': 'generative-ai-inference',
+    '数据中心第 4 代 Tensor Core': 'datacenter-gen4-tensor-core',
+    'WGMMA 与异步执行': 'wgmma-async-execution',
+    '多 GPU 训练与系统瓶颈': 'multi-gpu-system-bottlenecks',
+    '路线图定位': 'roadmap-positioning',
+    'NVFP4 与第三代 Transformer Engine': 'nvfp4-third-gen-transformer-engine',
+    'Rack-scale 系统视角': 'rack-scale-system-view',
+    'SM 微架构图': 'sm-architecture',
+    'SIMT 改进：独立线程调度': 'simt-thread-scheduling',
+    'CUDA Kernel': 'cuda-kernel',
+    'A100 vs V100 性能提升': 'a100-vs-v100',
+    'References': 'references',
+}
+
+
+def slugify_section_title(title):
+    """将 Markdown 小节标题转为稳定、可读的锚点片段。"""
+    normalized = re.sub(r'\s+', ' ', title.strip())
+    if normalized in SECTION_SLUG_ALIASES:
+        return SECTION_SLUG_ALIASES[normalized]
+
+    if normalized.startswith('规模+存储层次'):
+        suffix = slugify(normalized.replace('规模+存储层次', '', 1))
+        return f'scale-memory-{suffix}' if suffix != 'section' else 'scale-memory'
+
+    return slugify(normalized)
+
+
 def humanize_slug(slug):
     """将文件名中的 slug 转为导航显示文案。"""
     parts = [part for part in re.split(r'[-_]+', slug) if part]
@@ -473,24 +525,52 @@ def render_figure(arch):
                 f'                            </div>')
 
 
-def render_extra_section(body):
+def render_extra_section(body, subheadings=None):
     """渲染额外子段落（如 Volta SIMT、Ampere A100 对比）"""
     lines = body.split('\n')
     html = ''
     i = 0
     text_lines = []
+    feature_open = False
+    subheading_index = 0
 
     def flush_text():
         nonlocal html
-        if text_lines:
-            text_html = notes_to_html('\n'.join(text_lines))
+        text = '\n'.join(text_lines)
+        if text.strip():
+            text_html = notes_to_html(text)
             html += f'                        <div class="arch-notes" style="margin-top:12px">\n'
             html += f'                            {text_html}\n'
             html += f'                        </div>\n'
+        if text_lines:
             text_lines.clear()
+
+    def close_feature():
+        nonlocal html, feature_open
+        if feature_open:
+            html += '                        </div>\n'
+            feature_open = False
 
     while i < len(lines):
         line = lines[i]
+
+        subheading = re.match(r'^####\s+(.+?)\s*$', line)
+        if subheading:
+            flush_text()
+            close_feature()
+
+            title = subheading.group(1).strip()
+            anchor = ''
+            if subheadings and subheading_index < len(subheadings):
+                anchor = subheadings[subheading_index]['anchor']
+            subheading_index += 1
+
+            anchor_attr = f' id="{anchor}"' if anchor else ''
+            html += f'                        <div class="arch-feature-section arch-section-anchor"{anchor_attr}>\n'
+            html += f'                            <h4 class="arch-feature-title">{inline_md(title)}</h4>\n'
+            feature_open = True
+            i += 1
+            continue
 
         # 双图
         img2 = re.match(r'^\[images:\s*(.+?)\s*\|\s*(.+?)\s*\]$', line)
@@ -545,6 +625,7 @@ def render_extra_section(body):
         i += 1
 
     flush_text()
+    close_feature()
     return html
 
 
@@ -564,6 +645,10 @@ def is_promotable_top_full_image(body):
 
 def render_card(arch):
     """生成单个架构卡片 HTML"""
+    section_entries = build_arch_section_entries(arch)
+    section_entries_by_id = {id(entry['section']): entry for entry in section_entries}
+    section_ids = {id(entry['section']): entry['anchor'] for entry in section_entries}
+
     # Tags
     tags = [t.strip() for t in arch.get('tags', '').split(',') if t.strip()]
     tag_html = ''.join(f'\n                            <span class="paper-tag">{t}</span>' for t in tags)
@@ -599,15 +684,31 @@ def render_card(arch):
     ]
     top_html = ''
     for sec in top_sections:
-        top_html += '\n\n                        ' + render_extra_section(sec['body']).strip()
+        anchor = section_ids.get(id(sec))
+        anchor_attr = f' id="{anchor}"' if anchor else ''
+        top_html += (
+            f'\n\n                        <div class="arch-top-section arch-section-anchor"{anchor_attr} '
+            f'aria-label="{html_lib.escape(sec["title"])}">\n'
+        )
+        entry = section_entries_by_id.get(id(sec))
+        top_html += render_extra_section(sec['body'], entry['children'] if entry else None)
+        top_html += '                        </div>\n'
 
     extra_html = ''
     for sec in extra_sections:
-        section_slug = slugify(sec['title'])
-        extra_html += f'\n\n                        <div class="arch-extra-section arch-extra-section--{section_slug}">\n'
+        section_slug = slugify_section_title(sec['title'])
+        anchor = section_ids.get(id(sec))
+        anchor_attr = f' id="{anchor}"' if anchor else ''
+        extra_html += f'\n\n                        <div class="arch-extra-section arch-extra-section--{section_slug} arch-section-anchor"{anchor_attr}>\n'
         extra_html += f'                            <h3 class="arch-sub-title">{arch["name"]} {sec["title"]}</h3>\n'
-        extra_html += render_extra_section(sec['body'])
+        entry = section_entries_by_id.get(id(sec))
+        extra_html += render_extra_section(sec['body'], entry['children'] if entry else None)
         extra_html += '                        </div>\n'
+
+    sm_anchor = section_ids.get(id(sm_section)) if sm_section else ''
+    notes_anchor = section_ids.get(id(notes_section)) if notes_section else ''
+    sm_id_attr = f' id="{sm_anchor}"' if sm_anchor else ''
+    notes_id_attr = f' id="{notes_anchor}"' if notes_anchor else ''
 
     html = f'''                    <div class="arch-gen" id="{arch['id']}">
                         <div class="arch-gen-header">
@@ -616,10 +717,10 @@ def render_card(arch):
                         </div>{top_html}
                         <div class="arch-content-row">
                             <div class="arch-text">
-                                <div class="arch-sm-grid">
+                                <div class="arch-sm-grid arch-section-anchor"{sm_id_attr}>
                                     {sm_grid}
                                 </div>
-                                <div class="arch-notes">
+                                <div class="arch-notes arch-section-anchor"{notes_id_attr}>
                                     {notes_html}
                                 </div>
                             </div>
@@ -627,6 +728,52 @@ def render_card(arch):
                         </div>{extra_html}
                     </div>'''
     return html
+
+
+def unique_anchor(base, used):
+    """生成当前页面内唯一的锚点 id。"""
+    anchor = base
+    index = 2
+    while anchor in used:
+        anchor = f'{base}-{index}'
+        index += 1
+    used.add(anchor)
+    return anchor
+
+
+def build_arch_section_entries(arch):
+    """为单个架构页的 Markdown 小节生成目录项和锚点。"""
+    used = {arch['id']}
+    entries = []
+    for sec in arch['sections']:
+        base = f'{arch["id"]}-{slugify_section_title(sec["title"])}'
+        anchor = unique_anchor(base, used)
+        children = []
+        for child_title in re.findall(r'^####\s+(.+?)\s*$', sec['body'], flags=re.MULTILINE):
+            child_base = f'{anchor}-{slugify_section_title(child_title)}'
+            children.append({
+                'title': child_title,
+                'anchor': unique_anchor(child_base, used),
+            })
+        entries.append({
+            'section': sec,
+            'title': sec['title'],
+            'anchor': anchor,
+            'children': children,
+        })
+    return entries
+
+
+def render_arch_page_toc(arch):
+    """生成单个微架构页面的右侧目录。"""
+    items = [f'                        <li><a href="#{arch["id"]}">概览</a></li>']
+    for entry in build_arch_section_entries(arch):
+        title = html_lib.escape(entry['title'])
+        items.append(f'                        <li><a href="#{entry["anchor"]}">{title}</a></li>')
+        for child in entry['children']:
+            child_title = html_lib.escape(child['title'])
+            items.append(f'                        <li class="toc-child"><a href="#{child["anchor"]}">{child_title}</a></li>')
+    return '\n'.join(items)
 
 
 def render_toc(archs, compare_title=None):
@@ -815,17 +962,23 @@ def render_section(section_title, archs, compare_md, compare_title='微架构演
 {table_html.rstrip()}
             ''')
 
-    toc_count = len(archs) + (1 if toc_compare_title else 0)
-    if toc_count > 1:
-        toc_html = render_toc(archs, toc_compare_title)
-        parts.append(f'''
-                <div class="page-toc" style="margin-top:24px">
-                    <h3>目录</h3>
-                    <ul>
-{toc_html}
-                    </ul>
-                </div>
-            ''')
+    toc_html = ''
+    if len(archs) == 1 and not compare_md:
+        toc_html = render_arch_page_toc(archs[0])
+    else:
+        toc_count = len(archs) + (1 if toc_compare_title else 0)
+        if toc_count > 1:
+            toc_html = render_toc(archs, toc_compare_title)
+
+    if toc_html:
+        parts.append(
+            '                <div class="page-toc">\n'
+            '                    <h3>目录</h3>\n'
+            '                    <ul>\n'
+            f'{toc_html}\n'
+            '                    </ul>\n'
+            '                </div>'
+        )
 
     if archs:
         cards_html = '\n\n'.join(render_card(a) for a in archs)
