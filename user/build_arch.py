@@ -16,12 +16,17 @@ LEGACY_MD_FILE = SCRIPT_DIR / 'NV微架构梳理.md'
 HTML_FILE = ROOT / 'web' / 'index.html'
 SRC_IMAGES = SCRIPT_DIR / 'images'
 DST_IMAGES = ROOT / 'web' / 'images'
+LLM_DIR = SCRIPT_DIR / 'llm'
 
 SPLIT_MD_RE = re.compile(r'^(?P<order>\d+)\.(?P<slug>.+)\.md$')
 NAV_START_MARKER = '<!-- ARCH_NAV_START -->'
 NAV_END_MARKER = '<!-- ARCH_NAV_END -->'
 SECTIONS_START_MARKER = '<!-- ARCH_SECTIONS_START -->'
 SECTIONS_END_MARKER = '<!-- ARCH_SECTIONS_END -->'
+LLM_NAV_START_MARKER = '<!-- LLM_NAV_START -->'
+LLM_NAV_END_MARKER = '<!-- LLM_NAV_END -->'
+LLM_SECTIONS_START_MARKER = '<!-- LLM_SECTIONS_START -->'
+LLM_SECTIONS_END_MARKER = '<!-- LLM_SECTIONS_END -->'
 
 # ── Markdown 解析 ──────────────────────────────────────────
 
@@ -111,6 +116,26 @@ SECTION_SLUG_ALIASES = {
     '路线图定位': 'roadmap-positioning',
     'NVFP4 与第三代 Transformer Engine': 'nvfp4-third-gen-transformer-engine',
     'Rack-scale 系统视角': 'rack-scale-system-view',
+    '核心问题': 'core-problem',
+    'Attention 符号速览': 'attention-symbols',
+    '从普通 Attention 到 FlashAttention': 'standard-to-flashattention',
+    '标准 Attention 的瓶颈': 'standard-attention-bottleneck',
+    'IO-aware 思路': 'io-aware',
+    '从伪融合到真正融合': 'pseudo-fusion-vs-real-fusion',
+    'HBM 与 SRAM 的角色': 'hbm-sram',
+    '为什么能省显存': 'memory-saving',
+    '分块算法': 'tiled-algorithm',
+    '前向扫描': 'forward-scan',
+    'Online Softmax': 'online-softmax',
+    '反向传播': 'backward',
+    '重算而不是保存巨大中间矩阵': 'recompute-instead-of-materialize',
+    '适用场景': 'use-cases',
+    '什么时候收益明显': 'where-it-helps',
+    '需要注意的边界': 'limits',
+    '工程用法': 'engineering-usage',
+    '融合前后对比': 'fusion-before-after',
+    'PyTorch 调用形态': 'pytorch-usage',
+    '与普通 Attention 的差异': 'standard-attention-difference',
     'SM 微架构图': 'sm-architecture',
     'SIMT 改进：独立线程调度': 'simt-thread-scheduling',
     'CUDA Kernel': 'cuda-kernel',
@@ -247,6 +272,38 @@ def discover_pages():
     return expand_source_to_pages(LEGACY_MD_FILE, 0, 'overview', archs, compare_md, compare_title)
 
 
+def discover_llm_pages():
+    """发现 LLM 相关页面，读取 user/llm/ 下的拆分 Markdown。"""
+    if not LLM_DIR.exists():
+        return []
+
+    pages = []
+    split_files = []
+    for path in LLM_DIR.glob('*.md'):
+        match = SPLIT_MD_RE.match(path.name)
+        if not match:
+            continue
+        split_files.append((int(match.group('order')), match.group('slug'), path))
+
+    split_files.sort(key=lambda item: (item[0], item[1].lower()))
+    for order, slug, path in split_files:
+        page = parse_arch_block(path.read_text(encoding='utf-8'))
+        if not page:
+            continue
+        page_slug = slugify(slug)
+        pages.append({
+            'source': path,
+            'order': order,
+            'slug': page_slug,
+            'nav_label': page['name'],
+            'section_title': page['name'],
+            'section_id': f'llm-{order}-{page_slug}',
+            'article': page,
+        })
+
+    return pages
+
+
 def parse_arch_block(block):
     """解析单个架构块：frontmatter + sections"""
     # 去掉末尾可能残留的 ---
@@ -307,6 +364,12 @@ def render_code_block(language, code):
     )
 
 
+def render_math_block(math):
+    """渲染 LaTeX display math block，交给 MathJax 在浏览器侧排版。"""
+    escaped_math = html_lib.escape(math.strip())
+    return f'<div class="math-block">\\[\n{escaped_math}\n\\]</div>'
+
+
 def parse_sm_config(body):
     """解析 SM 配置段为列表 [{label, value, highlight}]"""
     items = []
@@ -329,6 +392,27 @@ def notes_to_html(body):
 
     while i < len(lines):
         line = lines[i]
+
+        # display math block: $$ ... $$ 或 \[ ... \]
+        math_start = line.strip()
+        if math_start in ('$$', '\\['):
+            if getattr(notes_to_html, '_in_sublist', False):
+                html_parts.append(f'</{notes_to_html._in_sublist}>')
+                notes_to_html._in_sublist = False
+            if in_list:
+                html_parts.append(f'</{in_list}>')
+                in_list = False
+
+            end_marker = '$$' if math_start == '$$' else '\\]'
+            math_lines = []
+            i += 1
+            while i < len(lines) and lines[i].strip() != end_marker:
+                math_lines.append(lines[i])
+                i += 1
+            if i < len(lines):
+                i += 1
+            html_parts.append(render_math_block('\n'.join(math_lines)))
+            continue
 
         # fenced code block: ```python ... ```
         code_fence = re.match(r'^```([^`]*)$', line.strip())
@@ -597,8 +681,9 @@ def render_extra_section(body, subheadings=None):
             i += 1
             continue
 
-        # 单图
+        # 单图 / 全宽图
         img1 = re.match(r'^\[image:\s*(.+?)\s*\]$', line)
+        full_img = re.match(r'^\[full-image:\s*(.+?)\s*\]$', line)
         if img1:
             flush_text()
             caption = ''
@@ -609,6 +694,21 @@ def render_extra_section(body, subheadings=None):
                     i += 1
             html += f'                        <div class="paper-figure" style="margin-top:12px">\n'
             html += f'                            <img src="images/{img1.group(1).strip()}" alt="{caption}" style="max-width:700px">\n'
+            if caption:
+                html += f'                            <div class="paper-figure-caption">{caption}</div>\n'
+            html += f'                        </div>\n'
+            i += 1
+            continue
+        if full_img:
+            flush_text()
+            caption = ''
+            if i + 1 < len(lines):
+                cap_m = re.match(r'^\[caption:\s*(.+?)\s*\]$', lines[i + 1])
+                if cap_m:
+                    caption = cap_m.group(1).strip()
+                    i += 1
+            html += f'                        <div class="full-width-figure">\n'
+            html += f'                            <img src="images/{full_img.group(1).strip()}" alt="{caption}" style="max-width:100%; height:auto;">\n'
             if caption:
                 html += f'                            <div class="paper-figure-caption">{caption}</div>\n'
             html += f'                        </div>\n'
@@ -774,6 +874,44 @@ def render_arch_page_toc(arch):
             child_title = html_lib.escape(child['title'])
             items.append(f'                        <li class="toc-child"><a href="#{child["anchor"]}">{child_title}</a></li>')
     return '\n'.join(items)
+
+
+def render_article_toc(article):
+    """生成通用文章页的右侧目录。"""
+    items = [f'                        <li><a href="#{article["id"]}">概览</a></li>']
+    for entry in build_arch_section_entries(article):
+        title = html_lib.escape(entry['title'])
+        items.append(f'                        <li><a href="#{entry["anchor"]}">{title}</a></li>')
+        for child in entry['children']:
+            child_title = html_lib.escape(child['title'])
+            items.append(f'                        <li class="toc-child"><a href="#{child["anchor"]}">{child_title}</a></li>')
+    return '\n'.join(items)
+
+
+def render_article_card(article):
+    """生成 LLM 文章主体，复用架构页的 Markdown 渲染能力。"""
+    section_entries = build_arch_section_entries(article)
+    section_entries_by_id = {id(entry['section']): entry for entry in section_entries}
+    tags = [t.strip() for t in article.get('tags', '').split(',') if t.strip()]
+    tag_html = ''.join(f'\n                            <span class="paper-tag">{html_lib.escape(t)}</span>' for t in tags)
+    year_html = f'\n                            <span class="paper-tag">{html_lib.escape(article["year"])}</span>' if article.get('year') else ''
+
+    body_html = ''
+    for sec in article['sections']:
+        section_slug = slugify_section_title(sec['title'])
+        entry = section_entries_by_id.get(id(sec))
+        anchor_attr = f' id="{entry["anchor"]}"' if entry else ''
+        children = entry['children'] if entry else None
+        body_html += f'\n\n                        <div class="arch-extra-section arch-extra-section--{section_slug} arch-section-anchor"{anchor_attr}>\n'
+        body_html += f'                            <h3 class="arch-sub-title">{inline_md(html_lib.escape(sec["title"]))}</h3>\n'
+        body_html += render_extra_section(sec['body'], children)
+        body_html += '                        </div>\n'
+
+    return f'''                    <div class="arch-gen llm-article" id="{article['id']}">
+                        <div class="arch-gen-header">
+                            <h2>{html_lib.escape(article['name'])}</h2>{year_html}{tag_html}
+                        </div>{body_html}
+                    </div>'''
 
 
 def render_toc(archs, compare_title=None):
@@ -1048,6 +1186,58 @@ def render_sections(pages):
     return '\n\n'.join(sections)
 
 
+def render_llm_nav_items(pages):
+    """生成 LLM 相关导航列表。"""
+    items = []
+    total = len(pages)
+    for index, page in enumerate(pages):
+        classes = ['nav-item', 'arch-nav-item', 'llm-nav-item']
+        if index == 0:
+            classes.append('arch-nav-item--start')
+        if index == total - 1:
+            classes.append('arch-nav-item--end')
+
+        progress = index / max(total - 1, 1) if total else 0
+        hue = round(282 + (210 - 282) * progress)
+        accent = f'hsl({hue} 84% 68%)'
+        accent_soft = f'hsl({hue} 84% 68% / 0.22)'
+        class_attr = ' '.join(classes)
+        style_attr = f'--nav-accent: {accent}; --nav-accent-soft: {accent_soft};'
+        items.append(
+            f'                    <li class="{class_attr}" data-section="{page["section_id"]}" style="{style_attr}">\n'
+            f'                        <span class="icon" aria-hidden="true"></span>\n'
+            f'                        <span>{html_lib.escape(page["nav_label"])}</span>\n'
+            f'                    </li>'
+        )
+    return '\n'.join(items)
+
+
+def render_llm_sections(pages):
+    """生成 LLM 相关页面 section。"""
+    sections = []
+    for page in pages:
+        article = page['article']
+        toc_html = render_article_toc(article)
+        content = (
+            f'                <h1 class="section-title">{html_lib.escape(page["section_title"])}</h1>\n'
+            '                <div class="page-toc">\n'
+            '                    <h3>目录</h3>\n'
+            '                    <ul>\n'
+            f'{toc_html}\n'
+            '                    </ul>\n'
+            '                </div>\n\n'
+            '                <div class="arch-timeline" style="margin-top:32px">\n\n'
+            f'{render_article_card(article)}\n\n'
+            '                </div>'
+        )
+        sections.append(
+            f'            <section id="{page["section_id"]}" class="content-section">\n'
+            f'{content}\n'
+            f'            </section>'
+        )
+    return '\n\n'.join(sections)
+
+
 # ── HTML 替换 ──────────────────────────────────────────────
 
 def replace_between_markers(html, start_marker, end_marker, new_content):
@@ -1090,9 +1280,17 @@ def main():
     total_archs = sum(len(page['archs']) for page in pages)
     print(f'  共 {len(pages)} 个页面，{total_archs} 个架构卡片')
 
+    print('发现 LLM 相关页面 ...')
+    llm_pages = discover_llm_pages()
+    for page in llm_pages:
+        print(f'  - {page["source"].relative_to(SCRIPT_DIR)} -> {page["nav_label"]}')
+    print(f'  共 {len(llm_pages)} 个 LLM 页面')
+
     print('生成导航和 sections HTML ...')
     nav_html = render_nav_items(pages)
     sections_html = render_sections(pages)
+    llm_nav_html = render_llm_nav_items(llm_pages)
+    llm_sections_html = render_llm_sections(llm_pages)
 
     print('读取 web/index.html ...')
     html = HTML_FILE.read_text(encoding='utf-8')
@@ -1100,8 +1298,14 @@ def main():
     print('替换 NV 微架构导航 ...')
     new_html = replace_between_markers(html, NAV_START_MARKER, NAV_END_MARKER, nav_html)
 
+    print('替换 LLM 相关导航 ...')
+    new_html = replace_between_markers(new_html, LLM_NAV_START_MARKER, LLM_NAV_END_MARKER, llm_nav_html)
+
     print('替换 NV 微架构 sections ...')
     new_html = replace_between_markers(new_html, SECTIONS_START_MARKER, SECTIONS_END_MARKER, sections_html)
+
+    print('替换 LLM 相关 sections ...')
+    new_html = replace_between_markers(new_html, LLM_SECTIONS_START_MARKER, LLM_SECTIONS_END_MARKER, llm_sections_html)
 
     print('写回 web/index.html ...')
     HTML_FILE.write_text(new_html, encoding='utf-8')

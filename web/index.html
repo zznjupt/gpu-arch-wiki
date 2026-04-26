@@ -4,7 +4,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPU 微架构总结</title>
-    <link rel="stylesheet" href="styles.css?v=20260426-toc-sections">
+    <link rel="stylesheet" href="styles.css?v=20260427-math">
 </head>
 <body>
     <div class="container">
@@ -12,6 +12,17 @@
         <nav class="sidebar">
             <div class="logo">
                 <h2>GPU 微架构总结</h2>
+            </div>
+            <div class="nav-section">
+                <div class="nav-category">LLM 相关</div>
+                <ul class="nav-menu">
+                    <!-- LLM_NAV_START -->
+                    <li class="nav-item arch-nav-item llm-nav-item arch-nav-item--start arch-nav-item--end" data-section="llm-1-flashattention-v1" style="--nav-accent: hsl(282 84% 68%); --nav-accent-soft: hsl(282 84% 68% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>FlashAttention-V1</span>
+                    </li>
+                    <!-- LLM_NAV_END -->
+                </ul>
             </div>
             <div class="nav-section">
                 <div class="nav-category">GPU 微架构</div>
@@ -886,8 +897,8 @@
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-kepler-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gk210_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/gk210_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -971,8 +982,8 @@
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-maxwell-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gm204_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/gm204_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1053,8 +1064,8 @@
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-pascal-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gp100_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/gp100_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1100,8 +1111,8 @@
 
                         <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-pascal-sm-architecture">
                             <h3 class="arch-sub-title">Pascal SM 微架构图</h3>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/pascal_sm_arch.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/pascal_sm_arch.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1152,8 +1163,8 @@
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-volta-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gv100_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/gv100_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1417,8 +1428,8 @@ __global__ void hgemm_wmma_kernel(
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-turing-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/tu102_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/tu102_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1564,8 +1575,8 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
 
                         <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-turing-sm-architecture">
                             <h3 class="arch-sub-title">Turing SM 微架构图</h3>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/turing_sm_arch.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/turing_sm_arch.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1617,8 +1628,8 @@ serialized_engine = builder.build_serialized_network(network, config)</code></pr
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-ampere-ga100-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ga100_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/ga100_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1923,8 +1934,8 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
 
                         <div class="arch-extra-section arch-extra-section--a100-vs-v100 arch-section-anchor" id="arch-ampere-ga100-a100-vs-v100">
                             <h3 class="arch-sub-title">Ampere (GA100) A100 vs V100 性能提升</h3>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/a100_vs_v100.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/a100_vs_v100.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -1976,8 +1987,8 @@ ncu --metrics smsp__tensor_op_on_pred.avg ./my_program</code></pre></div>
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-ampere-ga102-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ga102_full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/ga102_full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -2088,8 +2099,8 @@ for images, labels in train_loader:
 
                         <div class="arch-extra-section arch-extra-section--sm-architecture arch-section-anchor" id="arch-ampere-ga102-sm-architecture">
                             <h3 class="arch-sub-title">Ampere (GA102) SM 微架构图</h3>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/1-GA102_sm.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/1-GA102_sm.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -2138,8 +2149,8 @@ for images, labels in train_loader:
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-ada-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/ad102-full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/ad102-full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -2275,8 +2286,8 @@ with torch.autocast(device_type=&quot;cuda&quot;, dtype=torch.float16):
                         </div>
 
                         <div class="arch-top-section arch-section-anchor" id="arch-hopper-chip-overview" aria-label="芯片总览图">
-                        <div class="arch-notes" style="margin-top:12px">
-                            <div class="full-width-figure"><img src="images/gh100-full.png" alt="" style="max-width:100%; height:auto;"></div>
+                        <div class="full-width-figure">
+                            <img src="images/gh100-full.png" alt="" style="max-width:100%; height:auto;">
                         </div>
                         </div>
 
@@ -2745,6 +2756,377 @@ struct Nvfp4Block {
             </section>
             <!-- ARCH_SECTIONS_END -->
 
+            <!-- LLM_SECTIONS_START -->
+            <section id="llm-1-flashattention-v1" class="content-section">
+                <h1 class="section-title">FlashAttention-V1</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#llm-flashattention-v1">概览</a></li>
+                        <li><a href="#llm-flashattention-v1-core-problem">核心问题</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-attention-symbols">Attention 符号速览</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-standard-to-flashattention">从普通 Attention 到 FlashAttention</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-standard-attention-bottleneck">标准 Attention 的瓶颈</a></li>
+                        <li><a href="#llm-flashattention-v1-io-aware">IO-aware 思路</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-pseudo-fusion-vs-real-fusion">从伪融合到真正融合</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-hbm-sram">HBM 与 SRAM 的角色</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-memory-saving">为什么能省显存</a></li>
+                        <li><a href="#llm-flashattention-v1-tiled-algorithm">分块算法</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-online-softmax">Online Softmax</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-forward-scan">前向扫描</a></li>
+                        <li><a href="#llm-flashattention-v1-backward">反向传播</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-backward-recompute-instead-of-materialize">重算而不是保存巨大中间矩阵</a></li>
+                        <li><a href="#llm-flashattention-v1-use-cases">适用场景</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-use-cases-where-it-helps">什么时候收益明显</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-use-cases-limits">需要注意的边界</a></li>
+                        <li><a href="#llm-flashattention-v1-engineering-usage">工程用法</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-fusion-before-after">融合前后对比</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-pytorch-usage">PyTorch 调用形态</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-standard-attention-difference">与普通 Attention 的差异</a></li>
+                        <li><a href="#llm-flashattention-v1-references">References</a></li>
+                    </ul>
+                </div>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
+                    <div class="arch-gen llm-article" id="llm-flashattention-v1">
+                        <div class="arch-gen-header">
+                            <h2>FlashAttention-V1</h2>
+                            <span class="paper-tag">2022</span>
+                            <span class="paper-tag">Attention</span>
+                            <span class="paper-tag">IO-aware</span>
+                            <span class="paper-tag">CUDA</span>
+                            <span class="paper-tag">Transformer</span>
+                        </div>
+
+                        <div class="arch-extra-section arch-extra-section--core-problem arch-section-anchor" id="llm-flashattention-v1-core-problem">
+                            <h3 class="arch-sub-title">核心问题</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-attention-symbols">
+                            <h4 class="arch-feature-title">Attention 符号速览</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Transformer 里的 self-attention 可以先按下面三步理解：</p>
+                                    <div class="math-block">\[
+S = QK^T,
+\qquad
+P = \operatorname{softmax}(S),
+\qquad
+O = P V
+\]</div>
+                                    <ul class="arch-list">
+                                    <li><code>Q</code>：Query，表示当前 token 想要查询什么信息。</li>
+                                    <li><code>K</code>：Key，表示每个 token 可以被匹配的特征。</li>
+                                    <li><code>V</code>：Value，表示每个 token 真正要贡献出去的内容向量。</li>
+                                    <li><code>S = QK^T</code>：计算 token 之间的匹配分数。</li>
+                                    <li><code>P = softmax(S)</code>：把匹配分数变成注意力权重。</li>
+                                    <li><code>P @ V</code> 或 <code>P V</code>：矩阵乘法，用注意力权重 <code>P</code> 对 <code>V</code> 做加权求和，得到输出 <code>O</code>。</li>
+                                    </ul>
+                                    <p>通俗地说，<code>P</code> 决定“该看谁、看多少”，<code>V</code> 是“被看的内容”，<code>P @ V</code> 就是“按权重把内容混合起来”。FlashAttention 优化的正是 <code>S -> P -> O</code> 这条链路里大量中间矩阵的读写。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-standard-to-flashattention">
+                            <h4 class="arch-feature-title">从普通 Attention 到 FlashAttention</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>Attention 优化大致经历了几类思路：标准 Attention、Memory-efficient Attention，以及 FlashAttention 这类 IO-aware exact attention。</li>
+                                    <li>标准 Attention 好理解，但会把 <code>QK^T</code> 和 softmax 后的概率矩阵都写到显存里。</li>
+                                    <li>Memory-efficient Attention 已经开始减少反向传播中的显存保存，但 FlashAttention 进一步把前向和反向都围绕“少访问 HBM”来重排。</li>
+                                    <li>通俗地说，FlashAttention 不是“少算一点 attention”，而是“同样的 attention，别把中间草稿纸反复搬进搬出显存”。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-standard-attention-bottleneck">
+                            <h4 class="arch-feature-title">标准 Attention 的瓶颈</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>背景：Transformer 里的自注意力通常写成 <code>S = QK^T / sqrt(d)</code>、<code>P = softmax(S)</code>、<code>O = PV</code>。</li>
+                                    <li>问题：<code>S</code> 和 <code>P</code> 都是序列长度平方级别的矩阵，长序列下会占用大量 HBM 显存读写带宽。</li>
+                                    <li>关键观察：很多 Attention kernel 的瓶颈不是算力，而是把中间矩阵反复写入和读出 HBM。</li>
+                                    <li>FlashAttention-V1 的目标：在保持 exact attention 结果的前提下，减少 HBM 访问，不近似、不稀疏化、不改变模型数学定义。</li>
+                                    </ul>
+                                    <p>标准实现为了方便框架调度，会把 <code>QK^T</code>、softmax 结果和 dropout/mask 之后的概率矩阵显式物化出来。这样代码清楚，但会产生大量中间读写。FlashAttention-V1 的核心思路是把这些中间状态留在 SRAM/shared memory 和寄存器里，以 block 为单位边算边归约。</p>
+                                    <p>在 MHA profiling 里，scaled dot-product attention 经常很耗时。原因不是 <code>QK^T</code> 这次矩阵乘本身特别难，而是 <code>QK^T</code> 的形状是 <code>[batch_size, num_heads, seqlen, seqlen]</code>。<code>seqlen</code> 一变长，这个中间矩阵就按平方级膨胀；前向要写，softmax 要读写，反向还可能为了算梯度再读一次。这就是“显存流量”成为瓶颈的根源。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--io-aware arch-section-anchor" id="llm-flashattention-v1-io-aware">
+                            <h3 class="arch-sub-title">IO-aware 思路</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-pseudo-fusion-vs-real-fusion">
+                            <h4 class="arch-feature-title">从伪融合到真正融合</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>早期很多 fused attention 更像是“把 matmul、scale、mask、softmax、matmul 的调用封装到一个接口里”。</li>
+                                    <li>这种封装能减少框架层的调度开销，但如果中间的 <code>S</code> 和 <code>P</code> 仍然落到 HBM，就没有真正解决 memory traffic。</li>
+                                    <li>FlashAttention-V1 的融合更彻底：它把 score、softmax 和 <code>P @ V</code> 放进同一个分块流程里，尽量让中间结果只在片上存储中短暂停留。</li>
+                                    <li>通俗地说，伪融合像是把多个窗口排到一个柜台后面，流程还是一站一站搬材料；真正融合是把材料放在同一张工作台上连续加工。</li>
+                                    </ul>
+                        </div>
+                        <div class="full-width-figure">
+                            <img src="images/flashattn_banner.jpg" alt="FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。</div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-hbm-sram">
+                            <h4 class="arch-feature-title">HBM 与 SRAM 的角色</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>HBM：容量大但访问慢，适合存放完整的 <code>Q</code>、<code>K</code>、<code>V</code> 和最终输出 <code>O</code>。</li>
+                                    <li>SRAM/shared memory：容量小但访问快，适合缓存当前 block 的 <code>Q</code>、<code>K</code>、<code>V</code> tile。</li>
+                                    <li>寄存器：保存每一行 softmax 的运行最大值、归一化分母和局部输出累加。</li>
+                                    <li>设计重点：让每个 <code>K/V</code> tile 被加载后尽可能多地复用，避免完整 attention score 矩阵落回 HBM。</li>
+                                    </ul>
+                                    <p>FlashAttention-V1 不是减少乘加次数，而是减少 IO。它仍然计算完整的 attention，只是把计算顺序改成分块扫描：每次取一块 <code>Q</code> 和一块 <code>K/V</code>，完成局部 score、局部 softmax 统计和输出累加，然后继续处理下一块。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-memory-saving">
+                            <h4 class="arch-feature-title">为什么能省显存</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>标准 Attention 会显式保存 <code>N x N</code> 的 score/probability 矩阵。</li>
+                                    <li>FlashAttention-V1 不保存完整 <code>N x N</code> 中间矩阵，只保存每行的少量统计量。</li>
+                                    <li>前向阶段通常只需要保存输出、softmax 的归一化统计，以及反向需要重算的必要信息。</li>
+                                    <li>显存节省来自“少存中间矩阵”，速度提升来自“少访问慢速 HBM”。</li>
+                                    </ul>
+                                    <p>这里最大的难点是 softmax。softmax 是 row-wise 操作：一行里每个元素的结果，都依赖这一整行的最大值和分母。如果按普通写法，必须先把一整行 score 算完并保存下来，后面的 <code>P @ V</code> 才能继续。FlashAttention-V1 的做法是维护每行的在线统计量，让“一整行”可以被拆成多个小块陆续处理。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--tiled-algorithm arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm">
+                            <h3 class="arch-sub-title">分块算法</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>把 Attention 改成分块计算后，真正麻烦的地方不是 <code>QK^T</code> 的小块矩阵乘。矩阵乘本来就可以按 tile 做，难点在 softmax：每一行的 softmax 分母依赖这一整行所有 score。如果只是把每个小块各自 softmax，再把结果拼起来，数学结果会变掉。所以下面的流程先解决 softmax 的分块等价性，再看它如何嵌入 FlashAttention 的前向扫描。</p>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-online-softmax">
+                            <h4 class="arch-feature-title">Online Softmax</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>普通 softmax 通常先拿到一整行 score，再减最大值、指数化、求和。Online Softmax 做的是同一件事，只是把“一次性拿完整行”改成“按 block 逐段看到这一行”。每看到一个新 block，它都会更新这一行的最大值和归一化分母，并把旧的输出累加按比例缩放到新的归一化尺度。</p>
+                                    <p>先用一个只有 4 个 score 的例子看直觉。假设某一行 <code>QK^T</code> 得到：</p>
+                                    <div class="math-block">\[
+s = [0.1,\ 0.2,\ 0.3,\ 0.4],
+\qquad
+v = [v_0,\ v_1,\ v_2,\ v_3]
+\]</div>
+                                    <p>完整 softmax 之后再乘 <code>V</code>，等价于下面这个加权平均：</p>
+                                    <div class="math-block">\[
+o =
+\frac{\sum_{i=0}^{3} e^{s_i} v_i}{\sum_{i=0}^{3} e^{s_i}}
+=
+\frac{e^{0.1}v_0 + e^{0.2}v_1 + e^{0.3}v_2 + e^{0.4}v_3}
+{e^{0.1} + e^{0.2} + e^{0.3} + e^{0.4}}
+\]</div>
+                                    <p>如果一次只能分块看到两个 score，第一轮只能得到前两个元素的局部归一化结果：</p>
+                                    <div class="math-block">\[
+Z_1 = e^{0.1} + e^{0.2},
+\qquad
+o_1 = \frac{e^{0.1}v_0 + e^{0.2}v_1}{Z_1}
+\]</div>
+                                    <p>第二轮看到 <code>[0.3, 0.4]</code> 后，总分母变成：</p>
+                                    <div class="math-block">\[
+Z_2 = Z_1 + e^{0.3} + e^{0.4}
+\]</div>
+                                    <p>这时不能直接把第二块的结果拼上去，而是要把旧输出 <code>o_1</code> 从旧分母 <code>Z_1</code> 缩放到新分母 <code>Z_2</code>，再加上新块贡献：</p>
+                                    <div class="math-block">\[
+o_2 =
+\frac{Z_1}{Z_2} o_1
++
+\frac{e^{0.3}v_2 + e^{0.4}v_3}{Z_2}
+\]</div>
+                                    <p>在代码里，<code>pre_sum</code> 对应旧分母 <code>Z_1</code>，<code>cur_sum</code> 对应新分母 <code>Z_2</code>。这个关系说明：旧结果不是丢掉，而是换一个新的归一化尺度继续累计。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># 单行 online softmax 的概念示意。
+# x_block 是当前看到的一段 score，v_block 是对应的 V block。
+
+def online_softmax_update_row(x_block, v_block, old_m, old_l, old_o):
+    # 当前 block 内最大值。
+    block_m = max(x_block)
+
+    # 新最大值是旧最大值和当前 block 最大值的较大者。
+    new_m = max(old_m, block_m)
+
+    # 旧分母要从 old_m 的尺度缩放到 new_m 的尺度。
+    old_l_rescaled = old_l * exp(old_m - new_m)
+
+    # 当前 block 的指数也按 new_m 的尺度计算，避免溢出。
+    p = exp(x_block - new_m)
+
+    # 新分母等于缩放后的旧分母加当前 block 的指数和。
+    new_l = old_l_rescaled + sum(p)
+
+    # 旧输出累加同样需要缩放，然后加上当前 block 对 V 的贡献。
+    new_o = old_o * (old_l_rescaled / new_l) + (p @ v_block) / new_l
+
+    return new_m, new_l, new_o</code></pre></div>
+                                    <p>下面是不考虑数值稳定 <code>max</code> 缩放时的更直观版本，用一个最小例子展示分块累计。真实实现仍然要维护 <code>m</code>，避免 <code>exp(score)</code> 溢出。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># 为了说明分块累计，先忽略 max trick。
+# scores = [0.1, 0.2, 0.3, 0.4]，每次只处理两个元素。
+
+pre_sum = 0.0
+result = 0.0
+
+# 第一块：[0.1, 0.2]
+cur_sum = exp(0.1) + exp(0.2)
+result = (exp(0.1) * v0 + exp(0.2) * v1) / cur_sum
+pre_sum = cur_sum
+
+# 第二块：[0.3, 0.4]
+cur_sum = pre_sum + exp(0.3) + exp(0.4)
+
+# 旧 result 原来除以 pre_sum；现在总分母变成 cur_sum，所以旧结果要缩放。
+result = result * (pre_sum / cur_sum)
+
+# 再加上当前块对输出的贡献。
+result += (exp(0.3) * v2 + exp(0.4) * v3) / cur_sum
+pre_sum = cur_sum</code></pre></div>
+                                    <p>有了这个状态更新规则，FlashAttention 的前向扫描就比较自然了：每个 score block 算出来后，不把它写回 HBM，也不单独产出一块概率矩阵，而是立刻更新当前行的 <code>m/l/O</code> 状态。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-forward-scan">
+                            <h4 class="arch-feature-title">前向扫描</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>FlashAttention-V1 前向可以理解成两层 block 循环：外层遍历 <code>K/V</code> block，内层遍历 <code>Q</code> block。每个 <code>Q</code> block 会与当前 <code>K</code> block 做矩阵乘，得到一小块 score，然后立刻参与 Online Softmax 和输出累加。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># FlashAttention-V1 前向流程的概念伪代码。
+# 真实 CUDA kernel 会把 Q/K/V tile 放到 shared memory，并用线程块并行处理。
+
+# O 保存最终 attention 输出。
+O = zeros_like(Q)
+
+# m 保存每一行目前见过的最大 score，用于稳定 softmax。
+m = full((seq_len,), -inf)
+
+# l 保存每一行 softmax 分母的累计值。
+l = zeros((seq_len,))
+
+for kv_start in range(0, seq_len, block_k):
+    # 取当前 K/V tile。这个 tile 会被多个 Q block 复用。
+    K_tile = K[kv_start : kv_start + block_k]
+    V_tile = V[kv_start : kv_start + block_k]
+
+    for q_start in range(0, seq_len, block_q):
+        # 取当前 Q tile。
+        Q_tile = Q[q_start : q_start + block_q]
+
+        # 只计算一个小块 score，不把完整 N x N score 矩阵写回 HBM。
+        scores = Q_tile @ K_tile.T * scale
+
+        # 如果是 causal attention，要在这里对未来 token 做 mask。
+        scores = apply_mask_if_needed(scores, q_start, kv_start)
+
+        # 用 Online Softmax 更新当前 Q 行的最大值、分母和输出累加。
+        m, l, O = online_softmax_update(scores, V_tile, m, l, O, q_start)</code></pre></div>
+                                    <p>从直觉上看，<code>Q/K/V/O</code> 都被切成小块。<code>K/V</code> 的块在外层循环中被拿进来，<code>Q/O</code> 的块在内层循环中更新。每处理一个 <code>K/V</code> 小块，就得到当前 score 行的一段贡献，然后立即通过 Online Softmax 把它合并到输出 <code>O</code>。这样既不需要保存完整 <code>S</code>，也不需要等完整 <code>P</code> 矩阵生成后再做 <code>P @ V</code>。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--backward arch-section-anchor" id="llm-flashattention-v1-backward">
+                            <h3 class="arch-sub-title">反向传播</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-backward-recompute-instead-of-materialize">
+                            <h4 class="arch-feature-title">重算而不是保存巨大中间矩阵</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>标准做法倾向保存 softmax 概率矩阵，反向时直接读取。</li>
+                                    <li>FlashAttention-V1 选择保存更小的统计量，在反向中按 block 重算 score 和 softmax。</li>
+                                    <li>反向重算增加了一些算力开销，但避免了巨大的 HBM 读写。</li>
+                                    <li>在 GPU 上，额外计算通常比额外 HBM IO 更便宜，因此整体仍然更快。</li>
+                                    </ul>
+                                    <p>这个取舍是 FlashAttention-V1 的核心工程判断：用可控的重算换掉昂贵的中间矩阵存储。对于长序列，<code>N x N</code> 中间矩阵非常大，减少它的读写比少做一点重算更重要。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--use-cases arch-section-anchor" id="llm-flashattention-v1-use-cases">
+                            <h3 class="arch-sub-title">适用场景</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-use-cases-where-it-helps">
+                            <h4 class="arch-feature-title">什么时候收益明显</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>长序列训练和推理：序列越长，<code>N x N</code> 中间矩阵越大，IO 优化越明显。</li>
+                                    <li>head dimension 适配 kernel 的场景：常见的 64、128 等维度更容易跑到优化路径。</li>
+                                    <li>A100/H100 等高带宽 GPU：FlashAttention 能更好地把 SRAM/shared memory 和 Tensor Core 协同起来。</li>
+                                    <li>需要 exact attention 的模型：相比近似 attention，它不改变 attention 数学结果，更容易替换标准实现。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-use-cases-limits">
+                            <h4 class="arch-feature-title">需要注意的边界</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li>短序列或小 batch：kernel launch、调度和其他算子可能占主要时间，收益不一定明显。</li>
+                                    <li>非典型 mask 或 shape：如果 kernel 没有覆盖对应模式，可能回退到普通 attention。</li>
+                                    <li>端到端速度：Attention 变快不代表整个模型同比例变快，layernorm、MLP、通信和 KV cache 管理也会影响总耗时。</li>
+                                    <li>数值细节：虽然是 exact attention，混合精度、mask、dropout 和累加路径仍然需要和框架实现对齐。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--engineering-usage arch-section-anchor" id="llm-flashattention-v1-engineering-usage">
+                            <h3 class="arch-sub-title">工程用法</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-fusion-before-after">
+                            <h4 class="arch-feature-title">融合前后对比</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>融合前，scaled dot-product attention 可以拆成 <code>matmul -> scale -> mask -> softmax -> matmul</code>。这些算子各自执行时，中间矩阵很容易写回 HBM。融合后，FlashAttention-V1 把它们组织成一个 IO-aware kernel：score 小块刚算出来，就立刻做 mask、online softmax 和 <code>V</code> 的加权累积。</p>
+                                    <p>这可以理解为“流水线换位置”：不是先把所有半成品堆到仓库，再让下一个工序取走；而是每个小块在同一个工位上尽量加工完，只把必要的最终结果和少量统计量留下。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-pytorch-usage">
+                            <h4 class="arch-feature-title">PyTorch 调用形态</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>现代框架通常会在 <code>scaled_dot_product_attention</code> 或上层库中自动选择 FlashAttention 类 kernel。工程上更常见的做法不是手写 CUDA，而是保证 dtype、mask、head dimension 和设备满足 kernel 条件。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># PyTorch 侧的典型调用形态。
+# 在支持的 GPU、dtype 和 shape 下，后端可能选择 FlashAttention 类 kernel。
+
+import torch
+import torch.nn.functional as F
+
+# q/k/v 常见形状为 [batch, heads, seq_len, head_dim]。
+q = torch.randn(batch, heads, seq_len, head_dim, device=&quot;cuda&quot;, dtype=torch.float16)
+k = torch.randn(batch, heads, seq_len, head_dim, device=&quot;cuda&quot;, dtype=torch.float16)
+v = torch.randn(batch, heads, seq_len, head_dim, device=&quot;cuda&quot;, dtype=torch.float16)
+
+# is_causal=True 表示自回归模型常见的 causal mask。
+out = F.scaled_dot_product_attention(q, k, v, is_causal=True)</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-standard-attention-difference">
+                            <h4 class="arch-feature-title">与普通 Attention 的差异</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># 普通写法会显式产生 scores 和 probs 这两个 N x N 中间矩阵。
+scores = q @ k.transpose(-2, -1) * scale
+probs = torch.softmax(scores, dim=-1)
+out = probs @ v
+
+# FlashAttention 的 kernel 会把上面三步融合到分块扫描里。
+# Python 层看起来仍然是 attention，但底层避免了完整 scores/probs 落到 HBM。
+out = flash_attention(q, k, v, causal=True)</code></pre></div>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="llm-flashattention-v1-references">
+                            <h3 class="arch-sub-title">References</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li><a href="https://mp.weixin.qq.com/s/jPJuF2BCymNJqdzsQbPy1w" target="_blank">FlashAttention-V1 微信文章</a></li>
+                                    <li><a href="https://arxiv.org/abs/2205.14135" target="_blank">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li>
+                                    <li><a href="https://openreview.net/forum?id=H4DqfPSibmx" target="_blank">OpenReview: FlashAttention</a></li>
+                                    <li><a href="https://github.com/Dao-AILab/flash-attention" target="_blank">Dao-AILab flash-attention GitHub</a></li>
+                                    </ul>
+                        </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+            <!-- LLM_SECTIONS_END -->
+
             <!-- Tensor Core -->
             <section id="tensor-core" class="content-section">
                 <h1 class="section-title">Tensor Core 架构演进</h1>
@@ -2968,6 +3350,22 @@ struct Nvfp4Block {
         <img id="lightboxImg" src="" alt="">
     </div>
 
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            },
+            chtml: {
+                mtextInheritFont: true
+            }
+        };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <script src="data.js?v=20260426-toc-sections"></script>
     <script src="bit-visualizer.js?v=20260426-toc-sections"></script>
     <script src="syntax-highlighter.js?v=20260426-toc-sections"></script>
