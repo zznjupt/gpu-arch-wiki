@@ -339,7 +339,7 @@ id: arch-ampere-ga102
 name: Ampere (GA102)
 year: 2020
 tags: RTX 30
-image: ga102_sm.png
+image: GA102_sm.png
 ---
 
 ### SM 配置
