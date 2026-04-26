@@ -1552,14 +1552,14 @@ uint32_t frag_c[2] = {0, 0};
 
 asm volatile(
     &quot;ldmatrix.sync.aligned.x4.m8n8.x4.shared.b16 &quot;
-    &quot;{%0, %1, %2, %3}, [%4];\n&quot;
+    &quot;{ %0, %1, %2, %3 }, [%4];\n&quot;
     : &quot;=r&quot;(frag_a[0]), &quot;=r&quot;(frag_a[1]), &quot;=r&quot;(frag_a[2]), &quot;=r&quot;(frag_a[3])
     : &quot;r&quot;(smem_a_ptr)
 );
 
 asm volatile(
     &quot;mma.sync.aligned.m16n8k16.row.col.f16.f16.f16.f16 &quot;
-    &quot;{%0, %1}, {%2, %3, %4, %5}, {%6, %7}, {%8, %9};\n&quot;
+    &quot;{ %0, %1 }, { %2, %3, %4, %5 }, { %6, %7 }, { %8, %9 };\n&quot;
     : &quot;=r&quot;(frag_c[0]), &quot;=r&quot;(frag_c[1])
     : &quot;r&quot;(frag_a[0]), &quot;r&quot;(frag_a[1]), &quot;r&quot;(frag_a[2]), &quot;r&quot;(frag_a[3]),
       &quot;r&quot;(frag_b[0]), &quot;r&quot;(frag_b[1]),
