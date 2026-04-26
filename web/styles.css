@@ -914,13 +914,19 @@ html {
 }
 
 .page-toc li.toc-child {
-    margin-left: 10px;
-    border-left-color: rgba(0, 212, 170, 0.2);
+    margin-left: 14px;
+    padding-left: 10px;
+    border-left-color: rgba(0, 212, 170, 0.45);
 }
 
 .page-toc li.toc-child a {
-    font-size: 10px;
-    color: var(--text-dim);
+    font-size: 10.5px;
+    color: var(--text-secondary);
+}
+
+.page-toc li.toc-child a::before {
+    content: '└ ';
+    color: var(--accent-primary);
 }
 
 .page-toc a {
