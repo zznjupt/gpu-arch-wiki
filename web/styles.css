@@ -242,6 +242,16 @@ html {
     color: var(--text-primary);
 }
 
+.site-intro {
+    max-width: 820px;
+}
+
+.site-intro p {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 16px;
+}
+
 /* 总览区 */
 .intro-box {
     background: var(--bg-secondary);

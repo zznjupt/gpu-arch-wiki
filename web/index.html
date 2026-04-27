@@ -3,7 +3,7 @@
 <html lang="zh-CN"><head><meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPU 微架构总结</title>
+    <title>GPU 架构与 AI 计算笔记</title>
     <link rel="stylesheet" href="styles.css?v=20260427-math">
 </head>
 <body>
@@ -11,7 +11,15 @@
         <!-- 侧边导航 -->
         <nav class="sidebar">
             <div class="logo">
-                <h2>GPU 微架构总结</h2>
+                <h2>GPU 架构与 AI 计算笔记</h2>
+            </div>
+            <div class="nav-section">
+                <div class="nav-category">介绍</div>
+                <ul class="nav-menu">
+                    <li class="nav-item active" data-section="site-overview">
+                        <span>介绍</span>
+                    </li>
+                </ul>
             </div>
             <div class="nav-section">
                 <div class="nav-category">LLM 相关</div>
@@ -28,7 +36,7 @@
                 <div class="nav-category">GPU 微架构</div>
                 <ul class="nav-menu">
                     <!-- ARCH_NAV_START -->
-                    <li class="nav-item arch-nav-item arch-nav-item--compare arch-nav-item--start active" data-section="nv-arch-0-table" style="--nav-accent: hsl(192 88% 64%); --nav-accent-soft: hsl(192 88% 64% / 0.22);">
+                    <li class="nav-item arch-nav-item arch-nav-item--compare arch-nav-item--start" data-section="nv-arch-0-table" style="--nav-accent: hsl(192 88% 64%); --nav-accent-soft: hsl(192 88% 64% / 0.22);">
                         <span class="icon" aria-hidden="true"></span>
                         <span>微架构发展与比较</span>
                     </li>
@@ -93,7 +101,6 @@
                 <div class="nav-category">数据精度格式</div>
                 <ul class="nav-menu">
                     <li class="nav-item" data-section="precision-formats">
-                        <span class="icon">🔢</span>
                         <span>数据精度格式</span>
                     </li>
                     <!--
@@ -108,6 +115,15 @@
 
         <!-- 主内容区 -->
         <main class="main-content">
+            <section id="site-overview" class="content-section active">
+                <h1 class="section-title">介绍</h1>
+                <div class="site-intro">
+                    <p>这里放的是我整理 GPU 架构和 AI 计算资料时留下的笔记。它不是一本完整教材，更像一份持续补充的路线图：看到一个概念，就尽量把它和硬件结构、数据流、性能瓶颈放到一起讲清楚。</p>
+                    <p>目前主要有三块内容：GPU 微架构、数据精度格式，以及 LLM 算子优化。想先看整体脉络，可以从“微架构发展与比较”开始；想查 FP8、BF16、INT4 这类格式，就看“数据精度格式”；想看算法怎么落到 kernel，可以直接看 FlashAttention-V1。</p>
+                    <p>后面会继续补内容，但原则不变：少堆名词，多讲为什么这么设计，以及它在真实计算里解决了什么问题。</p>
+                </div>
+            </section>
+
             <!-- 数据精度格式区 -->
             <section id="precision-formats" class="content-section">
                 <h1 class="section-title">数据精度格式</h1>
@@ -115,7 +131,7 @@
                     <p>本页面系统整理 AI 训练、推理、HPC 和工程选型场景中的各种数据精度格式，帮助您理解它们的差异、联系、应用场景和硬件支持情况。</p>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="stat-value" id="totalFormats">16</div>
+                            <div class="stat-value" id="totalFormats">19</div>
                             <div class="stat-label">精度格式</div>
                         </div>
                         <div class="stat-item">
@@ -715,7 +731,7 @@
 
             <!-- NV 微架构梳理 -->
             <!-- ARCH_SECTIONS_START -->
-            <section id="nv-arch-0-table" class="content-section active">
+            <section id="nv-arch-0-table" class="content-section">
                 <h1 class="section-title">微架构发展与比较</h1>
 
                 <h2 class="subsection-title" id="arch-compare">Nvidia GPGPU 微架构演进</h2>
@@ -3198,6 +3214,7 @@ o&#x27;_i =
 \frac{e^{x_i-m_i}}{d&#x27;_i}V[i,:]
 \]</div>
                                     <p>这样，每看到一个新的 key/value，就完成三件事：更新最大值、更新分母、更新输出。整行不再需要先生成 <code>A[k,:] = softmax(Q[k,:]K^T)</code>，也不需要第二遍回头把概率乘以 <code>V</code>。</p>
+                                    <p>这里也解释了一个容易混淆的点：Online Softmax 仍然是 2-pass，是因为它的目标是产出 softmax 概率 <code>a_i</code>。第一遍扫描只能得到最终的 <code>m_N</code> 和 <code>d'_N</code>；在这两个量确定之前，任意一个 <code>a_i = e^{x_i-m_N}/d'_N</code> 都还不能最终确定，所以还需要第二遍回头把每个 <code>x_i</code> 归一化成概率。FlashAttention 的目标不是把整行概率 <code>A[k,:]</code> 产出来，而是直接得到 <code>O[k,:] = A[k,:]V</code>。它把 <code>V</code> 的加权累加也写进在线状态 <code>o'_i</code> 里：每看到一个新的 score/value，就更新 <code>m_i/d'_i</code>，同时把旧输出缩放到新尺度，并加入当前 value 的贡献。这样如果只关心最终输出 <code>O</code>，每个 key/value 看一次就够；但如果仍然要求显式生成完整概率矩阵 <code>A</code>，那就又会回到需要额外一遍的问题。</p>
                                     <p>这个版本仍然是“单行、逐元素”的说明。它展示的是 FlashAttention 的核心递推，而不是最终 GPU kernel 的形态。实际 GPU 上会把多个 <code>x_i</code> 合成一个 tile 向量来处理，并把 <code>Q/K/V/O/m/d'</code> 的状态放到 SRAM/shared memory 和寄存器中。下一节的 tiling 版本就是把上面的逐元素递推改写成块级递推。</p>
                         </div>
                         </div>

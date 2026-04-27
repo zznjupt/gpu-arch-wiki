@@ -1146,7 +1146,6 @@ def render_nav_items(pages):
     arch_index = 0
     items = []
     for index, page in enumerate(pages):
-        active = ' active' if index == 0 else ''
         classes = ['nav-item', 'arch-nav-item']
         if page['compare_md']:
             classes.append('arch-nav-item--compare')
@@ -1164,7 +1163,7 @@ def render_nav_items(pages):
         if index == len(pages) - 1:
             classes.append('arch-nav-item--end')
 
-        class_attr = ' '.join(classes) + active
+        class_attr = ' '.join(classes)
         style_attr = f'--nav-accent: {accent}; --nav-accent-soft: {accent_soft};'
         items.append(
             f'                    <li class="{class_attr}" data-section="{page["section_id"]}" style="{style_attr}">\n'
@@ -1178,8 +1177,7 @@ def render_nav_items(pages):
 def render_sections(pages):
     """生成多个微架构 section。"""
     sections = []
-    for index, page in enumerate(pages):
-        active = ' active' if index == 0 else ''
+    for page in pages:
         content = render_section(
             page['section_title'],
             page['archs'],
@@ -1187,7 +1185,7 @@ def render_sections(pages):
             page['compare_title'],
         )
         sections.append(
-            f'            <section id="{page["section_id"]}" class="content-section{active}">\n'
+            f'            <section id="{page["section_id"]}" class="content-section">\n'
             f'{content}\n'
             f'            </section>'
         )
