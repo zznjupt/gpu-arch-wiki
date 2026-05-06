@@ -2781,7 +2781,6 @@ struct Nvfp4Block {
                         <li><a href="#llm-flashattention-v1">概览</a></li>
                         <li><a href="#llm-flashattention-v1-core-problem">核心问题</a></li>
                         <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-attention-symbols">Attention 符号速览</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-standard-to-flashattention">从普通 Attention 到 FlashAttention</a></li>
                         <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-standard-attention-bottleneck">标准 Attention 的瓶颈</a></li>
                         <li><a href="#llm-flashattention-v1-io-aware">IO-aware 思路</a></li>
                         <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-pseudo-fusion-vs-real-fusion">从伪融合到真正融合</a></li>
@@ -2806,6 +2805,7 @@ struct Nvfp4Block {
                         <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-fusion-before-after">融合前后对比</a></li>
                         <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-pytorch-usage">PyTorch 调用形态</a></li>
                         <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-standard-attention-difference">与普通 Attention 的差异</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-cuda-fa1">CUDA 手搓 FA1 示例</a></li>
                         <li><a href="#llm-flashattention-v1-references">References</a></li>
                     </ul>
                 </div>
@@ -2844,17 +2844,6 @@ O = P V
                                     <li><code>P @ V</code> 或 <code>P V</code>：矩阵乘法，用注意力权重 <code>P</code> 对 <code>V</code> 做加权求和，得到输出 <code>O</code>。</li>
                                     </ul>
                                     <p>通俗地说，<code>P</code> 决定“该看谁、看多少”，<code>V</code> 是“被看的内容”，<code>P @ V</code> 就是“按权重把内容混合起来”。FlashAttention 优化的正是 <code>S -> P -> O</code> 这条链路里大量中间矩阵的读写。</p>
-                        </div>
-                        </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-standard-to-flashattention">
-                            <h4 class="arch-feature-title">从普通 Attention 到 FlashAttention</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <ul class="arch-list">
-                                    <li>Attention 优化大致经历了几类思路：标准 Attention、Memory-efficient Attention，以及 FlashAttention 这类 IO-aware exact attention。</li>
-                                    <li>标准 Attention 好理解，但会把 <code>QK^T</code> 和 softmax 后的概率矩阵都写到显存里。</li>
-                                    <li>Memory-efficient Attention 已经开始减少反向传播中的显存保存，但 FlashAttention 进一步把前向和反向都围绕“少访问 HBM”来重排。</li>
-                                    <li>通俗地说，FlashAttention 不是“少算一点 attention”，而是“同样的 attention，别把中间草稿纸反复搬进搬出显存”。</li>
-                                    </ul>
                         </div>
                         </div>
                         <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-standard-attention-bottleneck">
@@ -3214,7 +3203,8 @@ o&#x27;_i =
 \frac{e^{x_i-m_i}}{d&#x27;_i}V[i,:]
 \]</div>
                                     <p>这样，每看到一个新的 key/value，就完成三件事：更新最大值、更新分母、更新输出。整行不再需要先生成 <code>A[k,:] = softmax(Q[k,:]K^T)</code>，也不需要第二遍回头把概率乘以 <code>V</code>。</p>
-                                    <p>这里也解释了一个容易混淆的点：Online Softmax 仍然是 2-pass，是因为它的目标是产出 softmax 概率 <code>a_i</code>。第一遍扫描只能得到最终的 <code>m_N</code> 和 <code>d'_N</code>；在这两个量确定之前，任意一个 <code>a_i = e^{x_i-m_N}/d'_N</code> 都还不能最终确定，所以还需要第二遍回头把每个 <code>x_i</code> 归一化成概率。FlashAttention 的目标不是把整行概率 <code>A[k,:]</code> 产出来，而是直接得到 <code>O[k,:] = A[k,:]V</code>。它把 <code>V</code> 的加权累加也写进在线状态 <code>o'_i</code> 里：每看到一个新的 score/value，就更新 <code>m_i/d'_i</code>，同时把旧输出缩放到新尺度，并加入当前 value 的贡献。这样如果只关心最终输出 <code>O</code>，每个 key/value 看一次就够；但如果仍然要求显式生成完整概率矩阵 <code>A</code>，那就又会回到需要额外一遍的问题。</p>
+                                    <p>这里也解释了一个容易混淆的点，讲得直白一点：Online Softmax 的第一遍其实只是“把账记完”。它先把整行的最大值和分母算出来，等这两个全局量确定后，第二遍才能把每个位置真正换算成 softmax 概率。所以它虽然把“找最大值”和“累分母”合并了，最后还是要再扫一遍来产出概率。</p>
+                                    <p>FlashAttention 走得更远一点。它不先把整行概率全部算出来，而是直接盯着最终输出。每扫到一个新的 key/value，就顺手把这部分 value 对输出的贡献加进去，旧输出也一起按新的 softmax 尺度调整好。这样只关心最终输出时，每个 key/value 看一次就够；如果还想显式写出完整概率矩阵，那自然又要额外多走一遍。</p>
                                     <p>这个版本仍然是“单行、逐元素”的说明。它展示的是 FlashAttention 的核心递推，而不是最终 GPU kernel 的形态。实际 GPU 上会把多个 <code>x_i</code> 合成一个 tile 向量来处理，并把 <code>Q/K/V/O/m/d'</code> 的状态放到 SRAM/shared memory 和寄存器中。下一节的 tiling 版本就是把上面的逐元素递推改写成块级递推。</p>
                         </div>
                         </div>
@@ -3304,103 +3294,43 @@ o&#x27;_{\#\text{tiles}}
                         <div class="arch-extra-section arch-extra-section--flashattention-flow arch-section-anchor" id="llm-flashattention-v1-flashattention-flow">
                             <h3 class="arch-sub-title">FlashAttention 流程</h3>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>上一节固定第 <code>k</code> 个 query 行，说明了如何用 <code>b</code> 大小的 <code>K/V</code> tile 扫完整行。真正落到 kernel 时，会把这种单行递推广到多个 query 行并行处理：当前 <code>Q</code> block 和当前 <code>K/V</code> block 生成一小块 score，然后立刻更新对应行的 <code>m / d' / O</code> 状态，局部 score 和局部概率用完就丢。</p>
-                                    <p>这里的 <code>O</code> 有一个容易误解的地方：它不是“当前 <code>K/V</code> tile 的局部输出”，而是“当前 query 行或 query block 已经扫描过若干个 <code>K/V</code> tile 后的归一化输出”。因此每加入一个新的 <code>K/V</code> tile，旧的 <code>O</code> 必须按照上一节公式重新缩放到新的 softmax 尺度，再加上新 tile 的贡献。</p>
+                            <p>前面的推导已经把数学关系讲清楚了，这一节只看 kernel 里这些状态怎么流动。可以把它理解成三件事：前向时边扫边把 <code>m/d'/O</code> 留下来，反向时按 tile 重算局部 score，最后用更小的行级状态换掉整行概率矩阵。</p>
                         </div>
                         <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-forward-scan">
                             <h4 class="arch-feature-title">前向扫描</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>FlashAttention-V1 前向可以理解成两层 block 循环：外层遍历 <code>K/V</code> block，内层遍历 <code>Q/O</code> block。外层固定一个 <code>K_j/V_j</code> tile 后，内层依次让多个 <code>Q_i</code> tile 与它相乘；这样当前 <code>K/V</code> tile 可以在片上被复用，而每个 <code>Q_i</code> 对应的 <code>O_i / d'_i / m_i</code> 会随着扫描进度不断更新。</p>
-                                    <p>初始化时：</p>
+                            <p>FlashAttention-V1 的前向可以理解成一层沿序列方向扫过去的循环：每次拿进一个 <code>K/V</code> tile，就用它去更新当前 <code>Q/O</code> block 的行级状态。局部 score、局部 softmax 和局部 <code>V</code> 累加都在片上完成，算完就丢；真正保留下来的只有还能继续往下接着算的 <code>O</code>、<code>m</code> 和 <code>d'</code>。</p>
+                                    <p>初始化很简单：</p>
                                     <ul class="arch-list">
-                                    <li><code>O = 0</code>：每行输出还没有累计任何 value 贡献。</li>
-                                    <li><code>d' = 0</code>：每行 softmax 分母为空。</li>
-                                    <li><code>m = -\infty</code>：每行当前最大 score 为空。</li>
+                                    <li><code>O = 0</code>，说明这行还没累加任何 <code>V</code>。</li>
+                                    <li><code>d' = 0</code>，说明分母还没开始积累。</li>
+                                    <li><code>m = -\infty</code>，说明当前还没有见过有效的最大值。</li>
                                     </ul>
-                                    <p>处理第 <code>(i, j)</code> 个 tile 时，流程是：</p>
-                                    <ol class="arch-list-ol">
-                                    <li>从 HBM 读取 <code>K_j</code> 和 <code>V_j</code> 到 SRAM/shared memory。</li>
-                                    <li>读取 <code>Q_i</code>、当前 <code>O_i</code>、<code>d'_i</code>、<code>m_i</code>。</li>
-                                    <li>计算局部 score：<code>S_{ij} = Q_i K_j^T</code>，并在这个 tile 上应用 scale、causal mask 或 padding mask。</li>
-                                    <li>对 <code>S_{ij}</code> 做 row-wise 局部归约，得到当前 tile 的局部最大值和指数和。</li>
-                                    <li>用上一节的 tile 更新公式合并历史状态和当前 tile，得到新的 <code>m_i</code>、<code>d'_i</code>、<code>O_i</code>。</li>
-                                    <li>把更新后的 <code>O_i</code>、<code>d'_i</code>、<code>m_i</code> 写回 HBM，继续处理下一个 <code>Q_i</code> 或下一个 <code>K_j/V_j</code>。</li>
-                                    </ol>
-                                    <p>这样 <code>S_{ij}</code> 和局部 softmax 权重只在片上存在很短时间。它们被用来更新 <code>O_i / d'_i / m_i</code> 后就可以丢弃，不需要写成完整的 <code>N x N</code> 矩阵。</p>
-                                    <p>从数据流上看，标准 Attention 是：</p>
-                                    <div class="math-block">\[
-QK^T \rightarrow S \rightarrow P=\operatorname{softmax}(S) \rightarrow O=PV
-\]</div>
-                                    <p>FlashAttention 则把 <code>S</code> 和 <code>P</code> 改成 tile 内临时量：</p>
-                                    <div class="math-block">\[
-(Q_i,\ K_j,\ V_j,\ O_i,\ d&#x27;_i,\ m_i)
-\rightarrow
-(O_i^{new},\ d_i^{\prime new},\ m_i^{new})
-\]</div>
-                                    <p>所以它不是少算 attention，而是改变了中间结果的生命周期：完整 <code>S/P</code> 不落到 HBM，只有最终输出和行级统计量跨 tile 保存。</p>
+                                    <p>所以前向阶段的重点不是“先算完什么再算什么”，而是“每来一块就顺手更新一块”。这样 <code>S</code> 和 <code>P</code> 不会在 HBM 里待很久，片上只保留每行必要的状态。</p>
                         </div>
                         </div>
                         <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-forward-saved-state">
                             <h4 class="arch-feature-title">前向保存内容</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>前向扫描结束后，反向传播还需要知道每一行 softmax 的归一化尺度。标准 Attention 往往可以直接保存并读取完整概率矩阵 <code>P</code>；FlashAttention 不保存 <code>P</code>，因此必须保存足够小、但足以重建局部 softmax 的状态。</p>
-                                    <p>通常需要保留的是：</p>
+                            <p>前向结束后，反向真正需要保存的也很少：</p>
                                     <ul class="arch-list">
                                     <li>输出 <code>O</code>：反向里计算 softmax 梯度时会用到前向输出。</li>
-                                    <li>每行 softmax 的归一化信息：概念上可以保存 <code>m</code> 和 <code>d'</code>；工程实现中常保存 <code>L = m + \log d'</code>，也就是 log-sum-exp。</li>
-                                    <li>必要的 mask/dropout 信息：causal mask 通常可由位置重新生成；dropout 则需要保存 mask，或保存能复现 mask 的随机数状态。</li>
+                                    <li>每行的归一化信息：<code>m</code> 和 <code>d'</code>，或者它们合成后的 <code>L = m + log d'</code>。</li>
+                                    <li>mask / dropout 这类必须和前向一致的信息。</li>
                                     </ul>
-                                    <p>保存 <code>L</code> 和保存 <code>m/d'</code> 在数学上是同一件事，因为：</p>
-                                    <div class="math-block">\[
-L_i = m_i + \log d&#x27;_i
-\]</div>
-                                    <p>反向重算某个 score tile <code>S_{ij}</code> 时，可以用 <code>L_i</code> 恢复对应概率：</p>
-                                    <div class="math-block">\[
-P_{ij} = \exp(S_{ij} - L_i)
-\]</div>
-                                    <p>这一步正好承接上一节的分块递推：前向没有保存完整 <code>S</code> 或 <code>P</code>，但保存了能把任意 tile 的 softmax 放回全行归一化尺度下的行级状态。</p>
+                                    <p>说白了，FlashAttention 保存的不是一整张大表，而是“把那张表重建回来”所需要的行级摘要。</p>
                         </div>
                         </div>
                         <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-backward">
                             <h4 class="arch-feature-title">反向传播</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>反向传播沿用前向的 tiling 思路，但方向上要为 <code>Q/K/V</code> 累加梯度。它不是从 HBM 读取完整概率矩阵 <code>P</code>，而是重新加载需要的 <code>Q/K/V</code> tile，重算对应的 score tile，再用前向保存的 <code>L</code> 或 <code>m/d'</code> 恢复这一块的 softmax 权重。</p>
-                                    <p>从数据流看，反向大致是：</p>
-                                    <ol class="arch-list-ol">
-                                    <li>读取当前 <code>Q_i/K_j/V_j</code> tile、前向输出 <code>O_i</code>、上游梯度 <code>dO_i</code>，以及前向保存的 <code>L_i</code>。</li>
-                                    <li>重算局部 score：<code>S_{ij} = Q_iK_j^T</code>，并重新应用和前向一致的 mask。</li>
-                                    <li>用 <code>P_{ij} = exp(S_{ij} - L_i)</code> 重建当前 tile 的 softmax 概率。</li>
-                                    <li>用 <code>P_{ij}</code> 和 <code>dO_i</code> 得到 <code>dV_j</code> 的局部贡献。</li>
-                                    <li>继续通过 softmax 的 row-wise 梯度公式得到 <code>dS_{ij}</code>。</li>
-                                    <li>用 <code>dS_{ij}</code> 分别累加 <code>dQ_i</code> 和 <code>dK_j</code>。</li>
-                                    <li>扫完所有相关 tile 后，把最终 <code>dQ/dK/dV</code> 写回 HBM。</li>
-                                    </ol>
-                                    <p>其中 softmax 反向的关键是每一行的归约项。因为前向保存了 <code>O_i</code>，这个归约项可以直接从 <code>dO_i</code> 和 <code>O_i</code> 得到：</p>
-                                    <div class="math-block">\[
-D_i = \operatorname{rowsum}(dO_i \odot O_i)
-\]</div>
-                                    <p>对某个局部 tile，再计算：</p>
-                                    <div class="math-block">\[
-dP_{ij} = dO_i V_j^T
-\]</div>
-                                    <p>然后用 softmax Jacobian 的行级形式：</p>
-                                    <div class="math-block">\[
-dS_{ij} = P_{ij} \odot (dP_{ij} - D_i)
-\]</div>
-                                    <p>这里的 <code>D_i</code> 等价于完整写法里的 <code>rowsum(dP_i \odot P_i)</code>，但它可以由 <code>dO_i</code> 和前向输出 <code>O_i</code> 直接得到。真实 kernel 因此只需要重建当前 tile 的 <code>P_{ij}</code>，不需要显式构造整行 <code>P_i</code> 或 <code>dP_i</code>。</p>
+                            <p>反向也一样，不去读完整 <code>P</code>，而是重新加载对应的 <code>Q/K/V</code> tile，再用前向保存的行级状态把这块概率恢复出来。恢复出来之后，先算 <code>dV</code>，再沿着 softmax 的行级公式往回推 <code>dQ</code> 和 <code>dK</code>。每算完一个 tile 就把它放下，不需要让整行概率常驻显存。</p>
                         </div>
                         </div>
                         <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-why-recompute-pays-off">
                             <h4 class="arch-feature-title">为什么重算划算</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>重算会增加一些矩阵乘和指数计算，但避免了保存、读取完整 <code>S/P</code> 矩阵。对于长序列，<code>S</code> 和 <code>P</code> 都是 <code>N x N</code> 级别；如果把它们保存到 HBM，前向要写，反向要读，带宽压力会按序列长度平方增长。</p>
-                                    <p>FlashAttention-V1 的工程判断是：在现代 GPU 上，额外重算局部 <code>Q_iK_j^T</code> 通常比搬运完整 <code>S/P</code> 更便宜。它把反向所需的大中间矩阵换成了小得多的行级状态 <code>O/L</code>，再用 tile 重算恢复局部概率。</p>
-                                    <p>因此收益来自两个方向：</p>
-                                    <ul class="arch-list">
-                                    <li>显存占用下降：不保存完整 <code>N x N</code> score/probability 矩阵。</li>
-                                    <li>HBM 流量下降：大部分中间结果停留在 SRAM/shared memory 和寄存器里，用完即丢。</li>
-                                    </ul>
-                                    <p>序列越长，中间矩阵越大，这个取舍越明显；序列很短时，kernel 调度、非 attention 算子和框架开销反而可能主导端到端时间。</p>
+                            <p>多做一点局部矩阵乘和指数计算，换掉的是 <code>N x N</code> 中间矩阵的读写。对长序列来说，搬运这些大矩阵比重算更贵，所以 FlashAttention 的收益主要来自少写、少读、少让中间结果落到 HBM。序列越长，这个差距越明显。</p>
                         </div>
                         </div>
                         </div>
@@ -3470,8 +3400,117 @@ probs = torch.softmax(scores, dim=-1)
 out = probs @ v
 
 # FlashAttention 的 kernel 会把上面三步融合到分块扫描里。
-# Python 层看起来仍然是 attention，但底层避免了完整 scores/probs 落到 HBM。
-out = flash_attention(q, k, v, causal=True)</code></pre></div>
+# 关键不是换一个 API，而是 kernel 内部不再物化完整 scores/probs。</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-cuda-fa1">
+                            <h4 class="arch-feature-title">CUDA 手搓 FA1 示例</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>下面是一个教学版 CUDA kernel，用来展示 FA1 的核心状态更新。它没有调用 FlashAttention 库，也没有写完整的 <code>scores</code> 或 <code>probs</code> 矩阵。为了让逻辑清楚，代码故意写成“一个 CUDA block 处理一行、一个线程做主要计算”的形式；真实高性能实现会把 dot product、max/sum 归约和 <code>V</code> 累加拆给一个 warp 或一个 CTA 并行完成。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">CUDA</div><pre><code class="language-cuda">#include &lt;cuda_fp16.h&gt;
+#include &lt;math_constants.h&gt;
+
+// Q/K/V/O shape: [B, H, N, D]
+// D 和 BK 用模板参数固定，方便编译器把 acc/scores 放进寄存器或本地数组。
+template&lt;int D, int BK&gt;
+__global__ void fa1_forward_one_row_kernel(
+    const half* __restrict__ Q,
+    const half* __restrict__ K,
+    const half* __restrict__ V,
+    half* __restrict__ O,
+    int B,
+    int H,
+    int N,
+    float scale,
+    bool causal
+) {
+    int row = blockIdx.x;
+    int head = blockIdx.y;
+    int batch = blockIdx.z;
+
+    // 教学版只用一个线程说明算法；生产版会用整个 block 协同。
+    if (threadIdx.x != 0) return;
+
+    int base = (batch * H + head) * N;
+    const half* q = Q + (base + row) * D;
+
+    float m = -CUDART_INF_F;
+    float d = 0.0f;
+    float acc[D];
+
+    #pragma unroll
+    for (int t = 0; t &lt; D; ++t) {
+        acc[t] = 0.0f;
+    }
+
+    for (int k0 = 0; k0 &lt; N; k0 += BK) {
+        float scores[BK];
+        float m_local = -CUDART_INF_F;
+
+        #pragma unroll
+        for (int j = 0; j &lt; BK; ++j) {
+            int col = k0 + j;
+            float s = -CUDART_INF_F;
+
+            if (col &lt; N &amp;&amp; (!causal || col &lt;= row)) {
+                s = 0.0f;
+                const half* k = K + (base + col) * D;
+
+                #pragma unroll
+                for (int t = 0; t &lt; D; ++t) {
+                    s += __half2float(q[t]) * __half2float(k[t]);
+                }
+                s *= scale;
+            }
+
+            scores[j] = s;
+            m_local = fmaxf(m_local, s);
+        }
+
+        float m_new = fmaxf(m, m_local);
+        float old_scale = (m == -CUDART_INF_F) ? 0.0f : expf(m - m_new);
+
+        float d_new = d * old_scale;
+        #pragma unroll
+        for (int j = 0; j &lt; BK; ++j) {
+            d_new += expf(scores[j] - m_new);
+        }
+
+        float acc_old_scale = (d_new == 0.0f) ? 0.0f : (d * old_scale) / d_new;
+        #pragma unroll
+        for (int t = 0; t &lt; D; ++t) {
+            acc[t] *= acc_old_scale;
+        }
+
+        #pragma unroll
+        for (int j = 0; j &lt; BK; ++j) {
+            int col = k0 + j;
+            if (col &gt;= N || (causal &amp;&amp; col &gt; row)) continue;
+
+            float p = expf(scores[j] - m_new) / d_new;
+            const half* v = V + (base + col) * D;
+
+            #pragma unroll
+            for (int t = 0; t &lt; D; ++t) {
+                acc[t] += p * __half2float(v[t]);
+            }
+        }
+
+        m = m_new;
+        d = d_new;
+    }
+
+    half* out = O + (base + row) * D;
+    #pragma unroll
+    for (int t = 0; t &lt; D; ++t) {
+        out[t] = __float2half_rn(acc[t]);
+    }
+}
+
+// 示例 launch:
+// dim3 grid(N, H, B);
+// fa1_forward_one_row_kernel&lt;64, 64&gt;&lt;&lt;&lt;grid, 1&gt;&gt;&gt;(Q, K, V, O, B, H, N, 1.0f / sqrtf(64.0f), true);</code></pre></div>
+                                    <p>这段代码最重要的不是性能，而是结构：<code>scores</code> 只在当前 <code>K/V</code> block 内短暂存在；<code>m</code>、<code>d</code> 和 <code>acc</code> 才是跨 block 保留下来的状态。也就是说，它手工实现的是前面推导的那条在线递推，而不是先调用一个现成 FA kernel。</p>
                         </div>
                         </div>
                         </div>
