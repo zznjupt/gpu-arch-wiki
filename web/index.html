@@ -25,9 +25,17 @@
                 <div class="nav-category">LLM 相关</div>
                 <ul class="nav-menu">
                     <!-- LLM_NAV_START -->
-                    <li class="nav-item arch-nav-item llm-nav-item arch-nav-item--start arch-nav-item--end" data-section="llm-1-flashattention-v1" style="--nav-accent: hsl(282 84% 68%); --nav-accent-soft: hsl(282 84% 68% / 0.22);">
+                    <li class="nav-item arch-nav-item llm-nav-item arch-nav-item--start" data-section="llm-0-base" style="--nav-accent: hsl(282 84% 68%); --nav-accent-soft: hsl(282 84% 68% / 0.22);">
                         <span class="icon" aria-hidden="true"></span>
-                        <span>FlashAttention-V1</span>
+                        <span>K/V Cache</span>
+                    </li>
+                    <li class="nav-item arch-nav-item llm-nav-item" data-section="llm-1-flashattention" style="--nav-accent: hsl(246 84% 68%); --nav-accent-soft: hsl(246 84% 68% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>FlashAttention</span>
+                    </li>
+                    <li class="nav-item arch-nav-item llm-nav-item arch-nav-item--end" data-section="llm-2-pagedattention" style="--nav-accent: hsl(210 84% 68%); --nav-accent-soft: hsl(210 84% 68% / 0.22);">
+                        <span class="icon" aria-hidden="true"></span>
+                        <span>vLLM-PagedAttention</span>
                     </li>
                     <!-- LLM_NAV_END -->
                 </ul>
@@ -118,9 +126,7 @@
             <section id="site-overview" class="content-section active">
                 <h1 class="section-title">介绍</h1>
                 <div class="site-intro">
-                    <p>这里放的是我整理 GPU 架构和 AI 计算资料时留下的笔记。它不是一本完整教材，更像一份持续补充的路线图：看到一个概念，就尽量把它和硬件结构、数据流、性能瓶颈放到一起讲清楚。</p>
-                    <p>目前主要有三块内容：GPU 微架构、数据精度格式，以及 LLM 算子优化。想先看整体脉络，可以从“微架构发展与比较”开始；想查 FP8、BF16、INT4 这类格式，就看“数据精度格式”；想看算法怎么落到 kernel，可以直接看 FlashAttention-V1。</p>
-                    <p>后面会继续补内容，但原则不变：少堆名词，多讲为什么这么设计，以及它在真实计算里解决了什么问题。</p>
+                    <p>这里把 GPU 的骨架、精度的边界和算子的呼吸放在一起，慢慢看清它们怎样把计算推得更远。</p>
                 </div>
             </section>
 
@@ -1755,7 +1761,7 @@ float dense_matrix[4][4] = {
 
 // Sparse 存储：只保留非零值和位置索引
 struct SparseMatrix {
-    // values 保存实际参与乘法的非零权重，避免把 0 也搬运和计算一遍。
+    // values 保存实际参与乘法的非零权重，避免把 0 也参与搬运和计算。
     float values[8];
 
     // indices 记录每个非零值在原始矩阵中的位置。
@@ -2773,48 +2779,477 @@ struct Nvfp4Block {
             <!-- ARCH_SECTIONS_END -->
 
             <!-- LLM_SECTIONS_START -->
-            <section id="llm-1-flashattention-v1" class="content-section">
-                <h1 class="section-title">FlashAttention-V1</h1>
+            <section id="llm-0-base" class="content-section">
+                <h1 class="section-title">K/V Cache</h1>
                 <div class="page-toc">
                     <h3>目录</h3>
                     <ul>
-                        <li><a href="#llm-flashattention-v1">概览</a></li>
-                        <li><a href="#llm-flashattention-v1-core-problem">核心问题</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-attention-symbols">Attention 符号速览</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-core-problem-standard-attention-bottleneck">标准 Attention 的瓶颈</a></li>
-                        <li><a href="#llm-flashattention-v1-io-aware">IO-aware 思路</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-pseudo-fusion-vs-real-fusion">从伪融合到真正融合</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-hbm-sram">HBM 与 SRAM 的角色</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-io-aware-memory-saving">为什么能省显存</a></li>
-                        <li><a href="#llm-flashattention-v1-tiled-algorithm">分块算法</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-softmax">Softmax</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-safe-softmax">Safe Softmax</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-online-softmax">Online Softmax</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-multi-pass-self-attention">Multi-pass Self-Attention</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-flashattention">FlashAttention</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-tiled-algorithm-flashattention-tiling">FlashAttention (Tiling)</a></li>
-                        <li><a href="#llm-flashattention-v1-flashattention-flow">FlashAttention 流程</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-flashattention-flow-forward-scan">前向扫描</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-flashattention-flow-forward-saved-state">前向保存内容</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-flashattention-flow-backward">反向传播</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-flashattention-flow-why-recompute-pays-off">为什么重算划算</a></li>
-                        <li><a href="#llm-flashattention-v1-use-cases">适用场景</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-use-cases-where-it-helps">什么时候收益明显</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-use-cases-limits">需要注意的边界</a></li>
-                        <li><a href="#llm-flashattention-v1-engineering-usage">工程用法</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-fusion-before-after">融合前后对比</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-pytorch-usage">PyTorch 调用形态</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-standard-attention-difference">与普通 Attention 的差异</a></li>
-                        <li class="toc-child"><a href="#llm-flashattention-v1-engineering-usage-cuda-fa1">CUDA 手搓 FA1 示例</a></li>
-                        <li><a href="#llm-flashattention-v1-references">References</a></li>
+                        <li><a href="#llm-base">概览</a></li>
+                        <li><a href="#llm-base-token">Token</a></li>
+                        <li class="toc-child"><a href="#llm-base-token-token">Token 是什么</a></li>
+                        <li><a href="#llm-base-prefill">Prefill</a></li>
+                        <li class="toc-child"><a href="#llm-base-prefill-section">先把输入全部读一遍</a></li>
+                        <li><a href="#llm-base-attention">Attention</a></li>
+                        <li class="toc-child"><a href="#llm-base-attention-token-token">每个 token 都要看其他 token</a></li>
+                        <li><a href="#llm-base-k-v">K/V</a></li>
+                        <li class="toc-child"><a href="#llm-base-k-v-token">历史 token 的可查询笔记</a></li>
+                        <li><a href="#llm-base-decode">Decode</a></li>
+                        <li class="toc-child"><a href="#llm-base-decode-token-token">一个 token 一个 token 地写答案</a></li>
+                        <li class="toc-child"><a href="#llm-base-decode-decode-k-v">为什么 Decode 要访问历史 K/V</a></li>
+                        <li><a href="#llm-base-kv-cache">KV Cache</a></li>
+                        <li class="toc-child"><a href="#llm-base-kv-cache-k-v">以前算过的 K/V 不要重复算</a></li>
+                        <li><a href="#llm-base-section">计算瓶颈</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-prefill-compute-bound">为什么 Prefill 是 compute-bound</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-decode-memory-bound">为什么 Decode 是 memory-bound</a></li>
+                        <li><a href="#llm-base-hbm-sram">HBM 与 SRAM</a></li>
+                        <li class="toc-child"><a href="#llm-base-hbm-sram-gpu">GPU 存储层次</a></li>
+                        <li><a href="#llm-base-section-2">完整例子</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-2-section">从输入到生成</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-2-decode">Decode 第一步</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-2-decode-2">Decode 第二步</a></li>
+                        <li class="toc-child"><a href="#llm-base-section-2-decode-3">Decode 第三步</a></li>
+                        <li><a href="#llm-base-llm">LLM 内存需求</a></li>
+                        <li class="toc-child"><a href="#llm-base-llm-section">模型权重</a></li>
+                        <li class="toc-child"><a href="#llm-base-llm-kv-cache">KV Cache</a></li>
+                        <li><a href="#llm-base-section-3">小结</a></li>
                     </ul>
                 </div>
 
                 <div class="arch-timeline" style="margin-top:32px">
 
-                    <div class="arch-gen llm-article" id="llm-flashattention-v1">
+                    <div class="arch-gen llm-article" id="llm-base">
                         <div class="arch-gen-header">
-                            <h2>FlashAttention-V1</h2>
+                            <h2>K/V Cache</h2>
+                            <span class="paper-tag">Token</span>
+                            <span class="paper-tag">Attention</span>
+                            <span class="paper-tag">KV Cache</span>
+                            <span class="paper-tag">Prefill</span>
+                            <span class="paper-tag">Decode</span>
+                        </div>
+
+                        <div class="arch-extra-section arch-extra-section--token arch-section-anchor" id="llm-base-token">
+                            <h3 class="arch-sub-title">Token</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-token-token">
+                            <h4 class="arch-feature-title">Token 是什么</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>LLM 不直接按“汉字”或“单词”理解文本，而是先把文本切成很多小片段，这些小片段叫 <code>token</code>。</p>
+                                    <p>比如一句话：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">我喜欢机器学习</code></pre></div>
+                                    <p>可能被切成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">我 / 喜欢 / 机器 / 学习</code></pre></div>
+                                    <p>也可能被切成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">我 / 喜 / 欢 / 机器学习</code></pre></div>
+                                    <p>具体怎么切，取决于模型使用的 <code>tokenizer</code>。</p>
+                                    <p>模型推理时，真正看到的不是原始文字，而是一串 token ID：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">[123, 4567, 8910, ...]</code></pre></div>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--prefill arch-section-anchor" id="llm-base-prefill">
+                            <h3 class="arch-sub-title">Prefill</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>在 Prefill 阶段，LLM 处理输入 tokens 以计算中间状态（keys 和 values），这些中间状态用于生成“第一个”新 token。每个新 token 都依赖于所有先前的 tokens，但由于输入的完整范围已知，因此从本质上讲，这是一个高度并行化的矩阵运算。它有效地利用了 GPU 的资源。</p>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-prefill-section">
+                            <h4 class="arch-feature-title">先把输入全部读一遍</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>假设你问模型：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">请解释一下 KV Cache 是什么。</code></pre></div>
+                                    <p>在模型开始回答之前，它要先把你的问题全部读进去。这一步叫 <code>Prefill</code>。</p>
+                                    <p>可以把 Prefill 理解成：模型先把整道题看完，并且给每个输入 token 做好“笔记”。</p>
+                                    <p>如果输入有 1000 个 token，Prefill 阶段会一次性处理这 1000 个 token。因为这些 token 都已经给定了，GPU 可以并行处理很多计算：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">token 1
+token 2
+token 3
+...
+token 1000</code></pre></div>
+                                    <p>所以 Prefill 阶段的特点是：</p>
+                                    <ul class="arch-list">
+                                    <li>输入 token 多。</li>
+                                    <li>矩阵乘法多。</li>
+                                    <li>GPU 并行度高。</li>
+                                    <li>主要吃算力。</li>
+                                    </ul>
+                                    <p>也就是说，Prefill 通常是 <code>compute-bound</code>，属于计算密集型阶段。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--attention arch-section-anchor" id="llm-base-attention">
+                            <h3 class="arch-sub-title">Attention</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-attention-token-token">
+                            <h4 class="arch-feature-title">每个 token 都要看其他 token</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>LLM 的核心结构是 Transformer，其中最重要的一部分是 Attention。</p>
+                                    <p>Attention 可以理解为：当前 token 在理解自己时，需要决定应该重点参考前面哪些 token。</p>
+                                    <p>比如句子：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">小明把书放进书包，因为它太重了。</code></pre></div>
+                                    <p>这里的“它”到底指“书”还是“书包”？模型需要通过 attention 去看前面的词，判断哪些词更重要。</p>
+                                    <p>在 LLM 里，每个 token 会产生三种向量：</p>
+                                    <ul class="arch-list">
+                                    <li><code>Q = Query</code>：查询，表示“我现在想找什么信息？”</li>
+                                    <li><code>K = Key</code>：索引，表示“我这里有什么信息可以被别人匹配？”</li>
+                                    <li><code>V = Value</code>：内容，表示“如果别人关注我，我提供什么信息？”</li>
+                                    </ul>
+                                    <p>可以用查资料来类比：</p>
+                                    <ul class="arch-list">
+                                    <li><code>Q</code>：你提出的问题。</li>
+                                    <li><code>K</code>：每份资料的标签或关键词。</li>
+                                    <li><code>V</code>：资料的具体内容。</li>
+                                    </ul>
+                                    <p>Attention 大概就是：</p>
+                                    <ol class="arch-list-ol">
+                                    <li>用 <code>Q</code> 去和所有 <code>K</code> 匹配。</li>
+                                    <li>看哪些 <code>K</code> 最相关。</li>
+                                    <li>再从对应的 <code>V</code> 里取信息。</li>
+                                    </ol>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--k-v arch-section-anchor" id="llm-base-k-v">
+                            <h3 class="arch-sub-title">K/V</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-k-v-token">
+                            <h4 class="arch-feature-title">历史 token 的可查询笔记</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>每个 token 进入模型后，每一层 attention 都会为它生成 <code>K</code> 和 <code>V</code>。</p>
+                                    <p>比如输入是：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">请 / 解释 / KV / Cache</code></pre></div>
+                                    <p>模型会为每个 token 保存类似这样的信息：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">请     -&gt; K/V
+解释   -&gt; K/V
+KV     -&gt; K/V
+Cache  -&gt; K/V</code></pre></div>
+                                    <p>真实的 <code>K/V</code> 是高维向量，不是文字。它们的作用是：后面生成新 token 的时候，可以回头查询这些历史 token 的信息。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--decode arch-section-anchor" id="llm-base-decode">
+                            <h3 class="arch-sub-title">Decode</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>在 Decode 阶段，LLM 会自回归地逐个生成输出标记，直到满足停止条件为止。每个连续的输出标记都需要知道之前所有迭代的输出状态（keys 和 values）。这类似于矩阵向量运算，与 Prefill 阶段相比，它未能充分利用 GPU 的计算能力。数据（weights, keys, values, activations）从内存传输到 GPU 的速度决定了延迟，而不是实际计算的速度。换句话说，这是一个内存密集型操作。</p>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-decode-token-token">
+                            <h4 class="arch-feature-title">一个 token 一个 token 地写答案</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Prefill 读完问题后，模型开始生成回答。</p>
+                                    <p>比如它要生成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">KV Cache 是一种用于加速大语言模型推理的缓存机制。</code></pre></div>
+                                    <p>模型不是一次性生成整句话，而是一个 token 一个 token 地生成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">第 1 步：生成 “KV”
+第 2 步：生成 “Cache”
+第 3 步：生成 “是”
+第 4 步：生成 “一种”
+第 5 步：生成 “用于”
+...</code></pre></div>
+                                    <p>这叫自回归生成。也就是说，每生成一个新 token，都要把它追加到历史上下文里，然后再生成下一个 token。</p>
+                                    <p>所以 Decode 阶段不能像 Prefill 那样完全并行。必须先知道第 1 个输出 token，才能生成第 2 个；先知道第 2 个，才能生成第 3 个。</p>
+                                    <p>它像写作文：你必须先写出前一句，才能决定下一句怎么写。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-decode-decode-k-v">
+                            <h4 class="arch-feature-title">为什么 Decode 要访问历史 K/V</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>假设模型现在要生成第 100 个输出 token。它不能只看刚刚生成的第 99 个 token，而是要参考整个历史上下文：</p>
+                                    <ul class="arch-list">
+                                    <li>用户输入的所有 token。</li>
+                                    <li>已经生成的 99 个 token。</li>
+                                    </ul>
+                                    <p>也就是说，新 token 的 <code>Q</code> 要去和历史所有 token 的 <code>K</code> 做匹配，然后根据对应的 <code>V</code> 汇总信息。</p>
+                                    <p>每生成一个新 token，都会经历类似这样的过程：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">新 token 的 Q
+    ↓
+和历史所有 K 做 attention
+    ↓
+读取历史所有 V
+    ↓
+得到当前 token 的上下文信息
+    ↓
+预测下一个 token</code></pre></div>
+                                    <p>上下文越长，历史 <code>K/V</code> 就越多。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--kv-cache arch-section-anchor" id="llm-base-kv-cache">
+                            <h3 class="arch-sub-title">KV Cache</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-kv-cache-k-v">
+                            <h4 class="arch-feature-title">以前算过的 K/V 不要重复算</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>如果没有 KV Cache，模型每一步都要重新计算所有历史 token 的 <code>K/V</code>。</p>
+                                    <p>假设模型已经生成了：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">KV Cache 是一种</code></pre></div>
+                                    <p>现在要生成下一个 token。如果没有 KV Cache，过程会变成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">第 1 步：处理用户输入，生成第 1 个 token
+第 2 步：重新处理用户输入 + 第 1 个 token
+第 3 步：重新处理用户输入 + 第 1、2 个 token
+第 4 步：重新处理用户输入 + 第 1、2、3 个 token
+...</code></pre></div>
+                                    <p>这非常浪费，因为历史 token 没变，它们的 <code>K/V</code> 其实也不会变。</p>
+                                    <p>KV Cache 的想法是：既然历史 token 的 <code>K/V</code> 已经算过了，那就存起来。以后每生成新 token，只需要计算新 token 的 <code>K/V</code>，然后把它追加到缓存里。</p>
+                        </div>
+                        <div class="full-width-figure">
+                            <img src="images/kv_cache_redraw.png" alt="Prefill 阶段把整段输入的 K/V 写入 KV Cache；Decode 阶段只计算新 token 的 K/V，再从缓存中读出历史 K/V 参与 attention。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">Prefill 阶段把整段输入的 K/V 写入 KV Cache；Decode 阶段只计算新 token 的 K/V，再从缓存中读出历史 K/V 参与 attention。</div>
+                        </div>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>有 KV Cache 后：</p>
+                                    <ul class="arch-list">
+                                    <li>Prefill 阶段：一次性计算输入 token 的 <code>K/V</code>，并存起来。</li>
+                                    <li>Decode 第 1 步：只计算新 token 的 <code>K/V</code>，追加到 KV Cache。</li>
+                                    <li>Decode 第 2 步：只计算最新 token 的 <code>K/V</code>，追加到 KV Cache。</li>
+                                    <li>Decode 第 3 步：继续追加。</li>
+                                    </ul>
+                                    <p>所以 KV Cache 本质上就是：历史 token 的 <code>K/V</code> 备忘录。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--section arch-section-anchor" id="llm-base-section">
+                            <h3 class="arch-sub-title">计算瓶颈</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-prefill-compute-bound">
+                            <h4 class="arch-feature-title">为什么 Prefill 是 compute-bound</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Prefill 阶段处理的是整段输入。比如输入长度是 4096 tokens，模型可以把这 4096 个 token 组成一个大矩阵，然后喂给 GPU 做大规模矩阵乘法。</p>
+                                    <p>GPU 最擅长的就是这种事情：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">大矩阵 x 大矩阵</code></pre></div>
+                                    <p>这时候 GPU 的计算单元很忙，Tensor Core / CUDA Core 都能被充分利用。</p>
+                                    <p>所以瓶颈通常是：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">GPU 算得够不够快</code></pre></div>
+                                    <p>这就叫 <code>compute-bound</code>。</p>
+                                    <p>形象一点说，Prefill 像是一次性批改一大摞试卷，很多题可以并行处理，主要看老师算得快不快。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-decode-memory-bound">
+                            <h4 class="arch-feature-title">为什么 Decode 是 memory-bound</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>Decode 阶段每次只生成一个 token。每一步的新计算量没有 Prefill 那么大，因为当前只处理一个新 token。</p>
+                                    <p>但是它必须读取大量历史 <code>K/V</code>。比如上下文已经有 8000 个 token，每层都要保存 <code>K/V</code>；模型可能有几十层，每层还有多个 attention head。</p>
+                                    <p>那么每生成一个新 token，都要从显存 HBM 里读取大量 KV Cache。这时候 GPU 不是没有计算能力，而是经常在等数据搬运：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">HBM 显存 -&gt; GPU SRAM / cache / register</code></pre></div>
+                                    <p>所以瓶颈变成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">数据读取得够不够快</code></pre></div>
+                                    <p>这就叫 <code>memory-bound</code>。</p>
+                                    <p>形象一点说，Decode 像写作文时不断翻前面的资料。你每次只写一个词，计算不难，但每写一个词都要翻一大堆资料，所以时间主要花在找资料和搬资料上。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--hbm-sram arch-section-anchor" id="llm-base-hbm-sram">
+                            <h3 class="arch-sub-title">HBM 与 SRAM</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-hbm-sram-gpu">
+                            <h4 class="arch-feature-title">GPU 存储层次</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>GPU 上的数据存储可以粗略理解为多级结构：</p>
+                                    <ul class="arch-list">
+                                    <li><code>HBM</code>：容量大，但相对慢。</li>
+                                    <li><code>SRAM / cache / shared memory</code>：容量小，但更快。</li>
+                                    <li><code>register</code>：容量更小，但最快。</li>
+                                    </ul>
+                                    <p>KV Cache 很大，不可能全部长期放在很小的 SRAM 里，所以主要放在 HBM 显存中。</p>
+                                    <p>每次 decode 新 token 时，GPU 要把需要的 <code>K/V</code> 从 HBM 读出来，送到更靠近计算单元的地方参与 attention 计算。</p>
+                                    <p>所以“大量加载矩阵数据到 SRAM”可以理解为：</p>
+                                    <ul class="arch-list">
+                                    <li>KV Cache 长期放在 HBM。</li>
+                                    <li>计算 attention 时，需要不断把 <code>K/V</code> 数据从 HBM 读到更近、更快的存储层级里。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--section arch-section-anchor" id="llm-base-section-2">
+                            <h3 class="arch-sub-title">完整例子</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-2-section">
+                            <h4 class="arch-feature-title">从输入到生成</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>假设用户输入：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">请用简单语言解释 KV Cache。</code></pre></div>
+                                    <p>Prefill 阶段，模型会：</p>
+                                    <ul class="arch-list">
+                                    <li>读完整个问题。</li>
+                                    <li>为每个输入 token 计算每一层的 <code>K/V</code>。</li>
+                                    <li>把这些 <code>K/V</code> 存进 KV Cache。</li>
+                                    </ul>
+                                    <p>可以想成：模型读题并做笔记。这一步并行度高，GPU 算得很忙。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-2-decode">
+                            <h4 class="arch-feature-title">Decode 第一步</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>模型开始回答，生成第一个 token，比如：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">KV</code></pre></div>
+                                    <p>它需要参考用户问题的 <code>K/V</code>，然后把 <code>KV</code> 这个新 token 自己的 <code>K/V</code> 也存进 KV Cache。</p>
+                                    <p>此时缓存里有：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">用户问题的 K/V
++ “KV” 的 K/V</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-2-decode-2">
+                            <h4 class="arch-feature-title">Decode 第二步</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>模型生成下一个 token，比如：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">Cache</code></pre></div>
+                                    <p>它要参考：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">用户问题的 K/V
++ “KV” 的 K/V</code></pre></div>
+                                    <p>然后把 <code>Cache</code> 的 <code>K/V</code> 也加入缓存。</p>
+                                    <p>此时缓存变成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">用户问题的 K/V
++ “KV” 的 K/V
++ “Cache” 的 K/V</code></pre></div>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-section-2-decode-3">
+                            <h4 class="arch-feature-title">Decode 第三步</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>模型生成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">是</code></pre></div>
+                                    <p>它又要参考前面全部历史 <code>K/V</code>，缓存继续变长。</p>
+                                    <p>所以随着生成内容越来越长：</p>
+                                    <ul class="arch-list">
+                                    <li>KV Cache 越来越大。</li>
+                                    <li>每一步需要读的历史 <code>K/V</code> 越来越多。</li>
+                                    <li>Decode 越来越受显存带宽影响。</li>
+                                    </ul>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--llm arch-section-anchor" id="llm-base-llm">
+                            <h3 class="arch-sub-title">LLM 内存需求</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>LLM 推理时，显存通常主要花在两件事上：</p>
+                                    <ul class="arch-list">
+                                    <li><code>模型权重</code>：模型参数本身。</li>
+                                    <li><code>KV Cache</code>：历史 token 的 <code>K/V</code> 缓存，用来避免重复计算。</li>
+                                    </ul>
+                                    <p>这也是为什么 <code>Decode</code> 往往先被显存容量和带宽卡住：模型权重要常驻，KV Cache 还会随着上下文长度不断增长。</p>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-llm-section">
+                            <h4 class="arch-feature-title">模型权重</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>模型权重的内存可以直接按参数量估算。比如一个 <code>7B</code> 参数的模型，如果用 <code>FP16</code> 或 <code>BF16</code> 加载，每个参数占 2 字节，那么大约需要：</p>
+                                    <div class="math-block">\[
+7 \times 10^9 \times 2
+\approx 14 \times 10^9
+\]</div>
+                                    <p>也就是约 <code>14 GB</code>。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-base-llm-kv-cache">
+                            <h4 class="arch-feature-title">KV Cache</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>在自回归生成里，每生成一个新 token，都要参考历史上下文。为了不反复重算历史 token 的 <code>K/V</code>，模型会把它们缓存起来，这部分就是 <code>KV Cache</code>。</p>
+                                    <p>对大多数 Transformer 来说，设 <code>d</code> 表示 hidden size，也就是 <code>H × D</code>，单个 token 的 KV Cache 大小可以写成：</p>
+                                    <div class="math-block">\[
+M_{tok}
+= 2 \times L \times H \times D \times b
+\]</div>
+                                    <p>其中：</p>
+                                    <ul class="arch-list">
+                                    <li><code>L</code> 是层数。</li>
+                                    <li><code>H</code> 是注意力头数。</li>
+                                    <li><code>D</code> 是每个头的维度。</li>
+                                    <li><code>b</code> 是每个元素占用的字节数。</li>
+                                    <li>前面的 <code>2</code> 表示 <code>K</code> 和 <code>V</code> 两份缓存。</li>
+                                    </ul>
+                                    <p>于是也可以写成：</p>
+                                    <div class="math-block">\[
+M_{tok}
+= 2 \times L \times d \times b
+\]</div>
+                                    <p>对于 batch size 为 <code>B</code>、序列长度为 <code>S</code> 的输入，KV Cache 总大小就是：</p>
+                                    <div class="math-block">\[
+M_{KV}
+= B \times S \times M_{tok}
+\]</div>
+                                    <p>展开后就是：</p>
+                                    <div class="math-block">\[
+M_{KV}
+= B \times S \times 2 \times L \times d \times b
+\]</div>
+                                    <p>batch 里的每个请求都要各自保留一份缓存，所以 batch 越大，显存压力也会涨得越快。</p>
+                                    <p>例如，Llama 2 7B 在 <code>FP16</code> 下，如果 <code>B=1</code>、<code>S=4096</code>、<code>L=32</code>、<code>d=4096</code>，那么：</p>
+                                    <div class="math-block">\[
+1 \times 4096 \times 2 \times 32 \times 4096 \times 2
+\approx 2.15 \times 10^9
+\]</div>
+                                    <p>也就是约 <code>2 GB</code>。</p>
+                                    <p>所以上下文一长，KV Cache 往往会很快变成显存大头，也正是 <code>Decode</code> 阶段最容易卡住的地方。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--section arch-section-anchor" id="llm-base-section-3">
+                            <h3 class="arch-sub-title">小结</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <ul class="arch-list">
+                                    <li><code>Prefill</code>：读题，并给所有输入做笔记。</li>
+                                    <li><code>Decode</code>：根据笔记，一个词一个词写答案。</li>
+                                    <li><code>KV Cache</code>：保存之前做过的笔记，避免每写一个词都重新读整篇文章。</li>
+                                    </ul>
+                                    <p>对应到计算特点：</p>
+                                    <ul class="arch-list">
+                                    <li><code>Prefill</code>：一次处理很多 token，矩阵乘法大，GPU 算力是瓶颈，所以通常是 <code>compute-bound</code>。</li>
+                                    <li><code>Decode</code>：一次只生成一个 token，但每次都要查大量历史 <code>K/V</code>，显存读写是瓶颈，所以通常是 <code>memory-bound</code>。</li>
+                                    <li><code>KV Cache</code>：用显存空间换时间，避免重复计算历史 <code>K/V</code>。</li>
+                                    <li>没有 KV Cache：每个新 token 都重算整段序列的注意力，成本约为 O(n²)，规模化时速度和成本都难以接受。</li>
+                                    <li>有 KV Cache：把每个 token 已算出的 K/V 张量缓存起来，每个新 token 的注意力计算降为 O(n)，这是生产推理的关键能力。</li>
+                                    </ul>
+                        </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="llm-1-flashattention" class="content-section">
+                <h1 class="section-title">FlashAttention</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#llm-flashattention">概览</a></li>
+                        <li><a href="#llm-flashattention-self-attention">Self-Attention</a></li>
+                        <li><a href="#llm-flashattention-io-aware">IO-aware 思路</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-io-aware-hbm-sram">HBM 与 SRAM 的角色</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-io-aware-memory-saving">为什么能省显存</a></li>
+                        <li><a href="#llm-flashattention-tiled-algorithm">分块算法</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-softmax">Softmax</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-safe-softmax">Safe Softmax</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-online-softmax">Online Softmax</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-multi-pass-self-attention">Multi-pass Self-Attention</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-flashattention">FlashAttention</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-tiled-algorithm-flashattention-tiling">FlashAttention (Tiling)</a></li>
+                        <li><a href="#llm-flashattention-flashattention-flow">FlashAttention 流程</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-flashattention-flow-forward-scan">前向扫描</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-flashattention-flow-forward-saved-state">前向保存内容</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-flashattention-flow-backward">反向传播</a></li>
+                        <li><a href="#llm-flashattention-engineering-usage">工程用法</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-engineering-usage-fusion-before-after">融合前后对比</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-engineering-usage-pytorch-usage">PyTorch 调用形态</a></li>
+                        <li class="toc-child"><a href="#llm-flashattention-engineering-usage-cuda-flashattention">CUDA 手搓 FlashAttention 示例</a></li>
+                        <li><a href="#llm-flashattention-references">References</a></li>
+                    </ul>
+                </div>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
+                    <div class="arch-gen llm-article" id="llm-flashattention">
+                        <div class="arch-gen-header">
+                            <h2>FlashAttention</h2>
                             <span class="paper-tag">2022</span>
                             <span class="paper-tag">Attention</span>
                             <span class="paper-tag">IO-aware</span>
@@ -2822,13 +3257,14 @@ struct Nvfp4Block {
                             <span class="paper-tag">Transformer</span>
                         </div>
 
-                        <div class="arch-extra-section arch-extra-section--core-problem arch-section-anchor" id="llm-flashattention-v1-core-problem">
-                            <h3 class="arch-sub-title">核心问题</h3>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-attention-symbols">
-                            <h4 class="arch-feature-title">Attention 符号速览</h4>
+                        <div class="arch-extra-section arch-extra-section--self-attention arch-section-anchor" id="llm-flashattention-self-attention">
+                            <h3 class="arch-sub-title">Self-Attention</h3>
+                        <div class="full-width-figure">
+                            <img src="images/attention_redraw.png" alt="Self-Attention 中 Q/K/V、注意力矩阵和输出的基本符号关系。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">Self-Attention 中 Q/K/V、注意力矩阵和输出的基本符号关系。</div>
+                        </div>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>Transformer 里的 self-attention 可以先按下面三步理解：</p>
-                                    <div class="math-block">\[
+                            <div class="math-block">\[
 S = QK^T,
 \qquad
 P = \operatorname{softmax}(S),
@@ -2843,43 +3279,19 @@ O = P V
                                     <li><code>P = softmax(S)</code>：把匹配分数变成注意力权重。</li>
                                     <li><code>P @ V</code> 或 <code>P V</code>：矩阵乘法，用注意力权重 <code>P</code> 对 <code>V</code> 做加权求和，得到输出 <code>O</code>。</li>
                                     </ul>
-                                    <p>通俗地说，<code>P</code> 决定“该看谁、看多少”，<code>V</code> 是“被看的内容”，<code>P @ V</code> 就是“按权重把内容混合起来”。FlashAttention 优化的正是 <code>S -> P -> O</code> 这条链路里大量中间矩阵的读写。</p>
-                        </div>
-                        </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-core-problem-standard-attention-bottleneck">
-                            <h4 class="arch-feature-title">标准 Attention 的瓶颈</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <ul class="arch-list">
-                                    <li>背景：Transformer 里的自注意力通常写成 <code>S = QK^T / sqrt(d)</code>、<code>P = softmax(S)</code>、<code>O = PV</code>。</li>
-                                    <li>问题：<code>S</code> 和 <code>P</code> 都是序列长度平方级别的矩阵，长序列下会占用大量 HBM 显存读写带宽。</li>
-                                    <li>关键观察：很多 Attention kernel 的瓶颈不是算力，而是把中间矩阵反复写入和读出 HBM。</li>
-                                    <li>FlashAttention-V1 的目标：在保持 exact attention 结果的前提下，减少 HBM 访问，不近似、不稀疏化、不改变模型数学定义。</li>
+                                    <p>通俗地说，<code>P</code> 决定“该看谁、看多少”，<code>V</code> 是“被看的内容”，<code>P @ V</code> 就是“按权重把内容混合起来”。</p>
+                                    <ul class="arch-list">
+                                    <li><code>S</code> 和 <code>P</code> 都是序列长度平方级别的矩阵，长序列下会占用大量 HBM 显存读写带宽。</li>
+                                    <li>很多 Attention kernel 的瓶颈不是算力，而是把中间矩阵反复写入和读出 HBM。</li>
+                                    <li>FlashAttention 的目标：在保持 exact attention 结果的前提下，减少 HBM 访问，不近似、不稀疏化、不改变模型数学定义。</li>
                                     </ul>
-                                    <p>标准实现为了方便框架调度，会把 <code>QK^T</code>、softmax 结果和 dropout/mask 之后的概率矩阵显式物化出来。这样代码清楚，但会产生大量中间读写。FlashAttention-V1 的核心思路是把这些中间状态留在 SRAM/shared memory 和寄存器里，以 block 为单位边算边归约。</p>
-                                    <p>在 MHA profiling 里，scaled dot-product attention 经常很耗时。原因不是 <code>QK^T</code> 这次矩阵乘本身特别难，而是 <code>QK^T</code> 的形状是 <code>[batch_size, num_heads, seqlen, seqlen]</code>。<code>seqlen</code> 一变长，这个中间矩阵就按平方级膨胀；前向要写，softmax 要读写，反向还可能为了算梯度再读一次。这就是“显存流量”成为瓶颈的根源。</p>
-                        </div>
                         </div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--io-aware arch-section-anchor" id="llm-flashattention-v1-io-aware">
+                        <div class="arch-extra-section arch-extra-section--io-aware arch-section-anchor" id="llm-flashattention-io-aware">
                             <h3 class="arch-sub-title">IO-aware 思路</h3>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-pseudo-fusion-vs-real-fusion">
-                            <h4 class="arch-feature-title">从伪融合到真正融合</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <ul class="arch-list">
-                                    <li>早期很多 fused attention 更像是“把 matmul、scale、mask、softmax、matmul 的调用封装到一个接口里”。</li>
-                                    <li>这种封装能减少框架层的调度开销，但如果中间的 <code>S</code> 和 <code>P</code> 仍然落到 HBM，就没有真正解决 memory traffic。</li>
-                                    <li>FlashAttention-V1 的融合更彻底：它把 score、softmax 和 <code>P @ V</code> 放进同一个分块流程里，尽量让中间结果只在片上存储中短暂停留。</li>
-                                    <li>通俗地说，伪融合像是把多个窗口排到一个柜台后面，流程还是一站一站搬材料；真正融合是把材料放在同一张工作台上连续加工。</li>
-                                    </ul>
-                        </div>
-                        <div class="full-width-figure">
-                            <img src="images/flashattn_banner.jpg" alt="FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。" style="max-width:100%; height:auto;">
-                            <div class="paper-figure-caption">FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。</div>
-                        </div>
-                        </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-hbm-sram">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-io-aware-hbm-sram">
                             <h4 class="arch-feature-title">HBM 与 SRAM 的角色</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
@@ -2888,34 +3300,34 @@ O = P V
                                     <li>寄存器：保存每一行 softmax 的运行最大值、归一化分母和局部输出累加。</li>
                                     <li>设计重点：让每个 <code>K/V</code> tile 被加载后尽可能多地复用，避免完整 attention score 矩阵落回 HBM。</li>
                                     </ul>
-                                    <p>FlashAttention-V1 不是减少乘加次数，而是减少 IO。它仍然计算完整的 attention，只是把计算顺序改成分块扫描：每次取一块 <code>Q</code> 和一块 <code>K/V</code>，完成局部 score、局部 softmax 统计和输出累加，然后继续处理下一块。</p>
+                                    <p>FlashAttention 不是减少乘加次数，而是减少 IO。它仍然计算完整的 attention，只是把计算顺序改成分块扫描：每次取一块 <code>Q</code> 和一块 <code>K/V</code>，完成局部 score、局部 softmax 统计和输出累加，然后继续处理下一块。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-io-aware-memory-saving">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-io-aware-memory-saving">
                             <h4 class="arch-feature-title">为什么能省显存</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
                                     <li>标准 Attention 会显式保存 <code>N x N</code> 的 score/probability 矩阵。</li>
-                                    <li>FlashAttention-V1 不保存完整 <code>N x N</code> 中间矩阵，只保存每行的少量统计量。</li>
+                                    <li>FlashAttention 不保存完整 <code>N x N</code> 中间矩阵，只保存每行的少量统计量。</li>
                                     <li>前向阶段通常只需要保存输出、softmax 的归一化统计，以及反向需要重算的必要信息。</li>
                                     <li>显存节省来自“少存中间矩阵”，速度提升来自“少访问慢速 HBM”。</li>
                                     </ul>
-                                    <p>这里最大的难点是 softmax。softmax 是 row-wise 操作：一行里每个元素的结果，都依赖这一整行的最大值和分母。如果按普通写法，必须先把一整行 score 算完并保存下来，后面的 <code>P @ V</code> 才能继续。FlashAttention-V1 的做法是维护每行的在线统计量，让“一整行”可以被拆成多个小块陆续处理。</p>
+                                    <p>这里最大的难点是 softmax。softmax 是 row-wise 操作：一行里每个元素的结果，都依赖这一整行的最大值和分母。如果按普通写法，必须先把一整行 score 算完并保存下来，后面的 <code>P @ V</code> 才能继续。FlashAttention 的做法是维护每行的在线统计量，让“一整行”可以被拆成多个小块陆续处理。</p>
                         </div>
                         </div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--tiled-algorithm arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm">
+                        <div class="arch-extra-section arch-extra-section--tiled-algorithm arch-section-anchor" id="llm-flashattention-tiled-algorithm">
                             <h3 class="arch-sub-title">分块算法</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>分块计算的关键不只是把 <code>QK^T</code> 切成更小的矩阵乘。矩阵乘的局部结果可以按块累加，softmax 却不能直接这样拆开：同一行里的每个概率都依赖整行最大值和整行分母。如果每个小块各自归一化，再把结果拼起来，得到的就不再是全局 softmax。</p>
-                                    <p>因此，FlashAttention 需要把 softmax 的全行依赖改写成可以随扫描过程更新的状态。本节从普通 Softmax 出发，先引入用于数值稳定的 Safe Softmax，再用 Online Softmax 合并最大值和分母的更新；随后把这组在线状态接入 Self-Attention 的 <code>V</code> 加权累加，得到 FlashAttention 的单行递推，最后扩展为按 tile 扫描的块级算法。整个过程的目标是保持 exact attention 的数学结果，同时避免把完整的 <code>N x N</code> score/probability 矩阵写入 HBM。</p>
+                                    <p>因此，FlashAttention 需要把 softmax 的全行依赖改写成可以随扫描过程更新的状态。本节从普通 Softmax 出发，先引入用于数值稳定的 Safe Softmax，再用 Online Softmax 合并最大值和分母的更新；随后把这组在线状态接入 Self-Attention 的 <code>V</code> 加权累加，得到 FlashAttention 的单行递推，最后扩展为按 tile 扫描的块级算法。</p>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-softmax">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-softmax">
                             <h4 class="arch-feature-title">Softmax</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>Softmax 的作用是把一行 score <code>x</code> 变成一行概率 <code>a</code>。先用最普通的 softmax 写法引出两个状态：输出 <code>a_i</code> 和分母 <code>d_i</code>。对一行输入：</p>
+                            <p>Softmax 的作用是把一行 score <code>x</code> 变成一行概率 <code>a</code>。对一行输入：</p>
                                     <div class="math-block">\[
 x = [x_1,\ x_2,\ ...,\ x_N]
 \]</div>
@@ -2924,63 +3336,51 @@ x = [x_1,\ x_2,\ ...,\ x_N]
 a_i =
 \frac{e^{x_i}}
 {\sum_{j=1}^{N} e^{x_j}}
+=
+\frac{e^{x_i}}
+{d_N}
 \]</div>
-                                    <p>为了后面能和 Online Softmax 对齐，把分母写成前缀累计：</p>
-                                    <div class="math-block">\[
-d_i = d_{i-1} + e^{x_i},
-\qquad
-d_0 = 0
-\]</div>
-                                    <p>扫完整行后得到：</p>
-                                    <div class="math-block">\[
-d_N = \sum_{j=1}^{N}e^{x_j}
-\]</div>
-                                    <p>第二遍再输出：</p>
-                                    <div class="math-block">\[
-a_i = \frac{e^{x_i}}{d_N}
-\]</div>
-                                    <p>因此普通 softmax 可以理解成一个 2-pass 算法：</p>
+                                    <p>因此普通 softmax 可以理解成需要两次遍历：</p>
                                     <ol class="arch-list-ol">
-                                    <li>Pass 1：扫描整行，累计分母 <code>d_N</code>。</li>
-                                    <li>Pass 2：再次扫描整行，输出 <code>a_i = exp(x_i) / d_N</code>。</li>
+                                    <li>第一次遍历：扫描整行，累计计算分母 <code>d_N = \sum_{j=1}^{N} e^{x_j}</code>。</li>
+                                    <li>第二次遍历：再次扫描整行，输出 <code>a_i = exp(x_i) / d_N</code>。</li>
                                     </ol>
-                                    <p>这里的关键限制是：<code>a_i</code> 依赖整行最终分母 <code>d_N</code>。也就是说，<code>a_i</code> 不是只由 <code>x_i</code> 决定，而是依赖整行 <code>x</code>。这正是 softmax 很难直接分块的原因：如果只看到当前 block，就不知道最终分母是多少。</p>
-                                    <p>把它放到 attention 里，一行输出可以写成：</p>
+                                    <p>这里的关键限制是：<code>a_i</code> 依赖整行最终分母 <code>d_N</code>。也就是说，<code>a_i</code> 依赖整行 <code>x</code>。这正是 softmax 很难直接分块的原因。把它放到 attention 里，一行输出可以写成：</p>
                                     <div class="math-block">\[
 o =
 \sum_{i=1}^{N} a_i v_i
 =
 \frac{\sum_{i=1}^{N} e^{x_i}v_i}
 {\sum_{i=1}^{N} e^{x_i}}
+=
+\frac{\sum_{i=1}^{N} e^{x_i}v_i}
+{d_N}
 \]</div>
                                     <p>其中 <code>x_i = qK_i^T</code>，<code>v_i</code> 是对应的 value 向量。标准实现通常先得到整行 <code>x</code>，再计算 <code>a</code>，最后用 <code>a</code> 乘 <code>V</code>。这很直观，但在长序列下会迫使 <code>QK^T</code> 和 softmax 后的概率矩阵占用大量显存。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-safe-softmax">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-safe-softmax">
                             <h4 class="arch-feature-title">Safe Softmax</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>普通 softmax 的问题是 <code>e^{x_i}</code> 可能溢出。Safe Softmax 用一个数学等价的形式解决数值稳定性：先找整行最大值，再把所有元素减去这个最大值。</p>
-                                    <p>第一遍扫描整行，得到前缀最大值：</p>
+                                    <p>第一次遍历整行，得到前缀最大值，遍历完整行后：</p>
                                     <div class="math-block">\[
 m_i = \max(m_{i-1}, x_i),
 \qquad
 m_0 = -\infty
-\]</div>
-                                    <p>扫完整行后：</p>
-                                    <div class="math-block">\[
+\qquad
 m_N = \max_{1 \le j \le N} x_j
 \]</div>
-                                    <p>第二遍在最终最大值 <code>m_N</code> 的尺度下累计分母：</p>
+                                    <p>第二次遍历在最终最大值 <code>m_N</code> 的尺度下累计分母，遍历完整行后：</p>
                                     <div class="math-block">\[
-d_i = d_{i-1} + e^{x_i - m_N},
+d_i = \sum_{j=1}^{i} e^{x_j - m_N}
+= d_{i-1} + e^{x_i - m_N},
 \qquad
 d_0 = 0
-\]</div>
-                                    <p>扫完整行后：</p>
-                                    <div class="math-block">\[
+\qquad
 d_N = \sum_{j=1}^{N} e^{x_j-m_N}
 \]</div>
-                                    <p>第三遍输出概率：</p>
+                                    <p>第三次遍历输出概率：</p>
                                     <div class="math-block">\[
 a_i =
 \frac{e^{x_i - m_N}}
@@ -2988,28 +3388,29 @@ a_i =
 \]</div>
                                     <p>这个变换不改变 softmax 结果，因为分子和分母都除以了同一个 <code>e^{m_N}</code>：</p>
                                     <div class="math-block">\[
+a_i =
 \frac{e^{x_i-m_N}}
-{\sum_j e^{x_j-m_N}}
+{\sum_{j=1}^{N} e^{x_j-m_N}}
 =
 \frac{e^{x_i}/e^{m_N}}
-{\sum_j e^{x_j}/e^{m_N}}
+{\sum_{j=1}^{N} e^{x_j}/e^{m_N}}
 =
 \frac{e^{x_i}}
-{\sum_j e^{x_j}}
+{\sum_{j=1}^{N} e^{x_j}}
 \]</div>
-                                    <p>Safe Softmax 的好处是数值稳定：因为 <code>x_i - m_N <= 0</code>，指数不会因为过大的正数溢出。但它带来一个重要代价：如果输入行不能完整留在 SRAM 里，算法会变成 3-pass；放到 self-attention 里，也就意味着同一行 logits 可能要通过 <code>Q</code> 和 <code>K</code> 重算多次。</p>
+                                    <p>Safe Softmax 的好处是数值稳定：因为 <code>x_i - m_N <= 0</code>，指数不会因为过大的正数溢出。但它带来一个重要代价：如果输入行不能完整留在 SRAM 里，算法会变成三次遍历；放到 self-attention 里，也就意味着同一行 logits 可能要通过 <code>Q</code> 和 <code>K</code> 重算多次。</p>
                                     <ol class="arch-list-ol">
-                                    <li>Pass 1：扫描整行，得到最终最大值 <code>m_N</code>。</li>
-                                    <li>Pass 2：再次扫描整行，得到稳定化分母 <code>d_N = sum_j exp(x_j - m_N)</code>。</li>
-                                    <li>Pass 3：第三次扫描整行，输出 <code>a_i = exp(x_i - m_N) / d_N</code>。</li>
+                                    <li>第一次遍历：扫描整行，得到最终最大值 <code>m_N</code>。</li>
+                                    <li>第二次遍历：再次扫描整行，得到稳定化分母 <code>d_N = sum_j exp(x_j - m_N)</code>。</li>
+                                    <li>第三次遍历：再次扫描整行，输出 <code>a_i = exp(x_i - m_N) / d_N</code>。</li>
                                     </ol>
-                                    <p>关键问题在第二遍：<code>d_i</code> 的定义依赖最终最大值 <code>m_N</code>。在第一遍还没扫完整行之前，局部 block 只能知道当前最大值 <code>m_i</code>，不能直接把分母累计到最终尺度上。Online Softmax 要解决的就是这个尺度切换问题。</p>
+                                    <p>关键问题出在第二次遍历：<code>d_i</code> 的定义依赖最终最大值 <code>m_N</code>。在第一次遍历还没有扫完整行之前，局部 block 只能知道当前最大值 <code>m_i</code>，不能直接把分母累计到最终尺度上。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-online-softmax">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-online-softmax">
                             <h4 class="arch-feature-title">Online Softmax</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>Online Softmax 要解决的是 Safe Softmax 的一个具体问题：第二遍计算分母时需要最终最大值 <code>m_N</code>，但 <code>m_N</code> 只有第一遍结束后才知道。解决办法是引入一个随前缀最大值变化的代理分母 <code>d'_i</code>。</p>
+                            <p>Online Softmax 要解决的是 Safe Softmax 的一个具体问题：第二次遍历计算分母时需要最终最大值 <code>m_N</code>，但 <code>m_N</code> 只有第一次遍历结束后才知道。解决办法是引入一个随前缀最大值变化的代理分母 <code>d'_i</code>。</p>
                                     <p>先定义前缀最大值：</p>
                                     <div class="math-block">\[
 m_i = \max(m_{i-1}, x_i)
@@ -3054,10 +3455,10 @@ d&#x27;_{i-1}e^{m_{i-1}-m_i}
 +
 e^{x_i-m_i}
 \]</div>
-                                    <p>这条式子只依赖当前元素 <code>x_i</code>、旧状态 <code>m_{i-1}/d'_{i-1}</code> 和新最大值 <code>m_i</code>，因此最大值和分母可以在同一遍扫描里更新。</p>
-                                    <p>2-pass online softmax 可以写成两个循环：</p>
+                                    <p>这条式子只依赖当前元素 <code>x_i</code>、旧状态 <code>m_{i-1}/d'_{i-1}</code> 和新最大值 <code>m_i</code>，因此最大值和分母可以在同一次遍历里更新。</p>
+                                    <p>Online Softmax 可以写成两次遍历：</p>
                                     <ol class="arch-list-ol">
-                                    <li>第一遍扫描输入，同时更新：</li>
+                                    <li>第一次遍历输入，同时更新：</li>
                                     </ol>
                                     <div class="math-block">\[
 m_i \leftarrow \max(m_{i-1}, x_i)
@@ -3069,21 +3470,19 @@ d&#x27;_{i-1}e^{m_{i-1}-m_i}
 e^{x_i-m_i}
 \]</div>
                                     <ol class="arch-list-ol">
-                                    <li>第二遍扫描输入，输出 softmax 概率：</li>
+                                    <li>第二次遍历输入，输出 softmax 概率：</li>
                                     </ol>
                                     <div class="math-block">\[
 a_i \leftarrow
 \frac{e^{x_i-m_N}}{d&#x27;_N}
 \]</div>
-                                    <p>初始化可以理解为 <code>m_0 = -\infty</code>、<code>d'_0 = 0</code>。第一遍结束后，<code>m_N</code> 是整行最大值，<code>d'_N</code> 是稳定 softmax 的最终分母；第二遍只负责把每个 <code>x_i</code> 归一化成概率 <code>a_i</code>。</p>
-                                    <p>和 Safe Softmax 相比，Online Softmax 把“求最大值”和“求分母”合并到第一遍，因此从 3-pass 变成 2-pass。但如果目标只是输出 softmax 概率，仍然需要第二遍，因为每个 <code>a_i</code> 依赖最终的 <code>m_N / d'_N</code>。它也还没有把 softmax 输出和后面的 <code>V</code> 加权累加融合起来：如果把整行概率写成 <code>A = softmax(QK^T)</code> 再去乘 <code>V</code>，仍然会有完整 <code>N x N</code> 中间矩阵的问题。</p>
-                                    <p>这正是下一节 Multi-pass Self-Attention 要处理的问题：能不能在 attention 的输出递推里复用同样的 <code>m_i/d'_i</code> 状态，而不是先完整产出概率矩阵。</p>
+                                    <p>和 Safe Softmax 相比，Online Softmax 把“求最大值”和“求分母”合并到第一次遍历，因此从三次遍历变成两次遍历。但如果目标只是输出 softmax 概率，仍然需要第二次遍历，因为每个 <code>a_i</code> 依赖最终的 <code>m_N / d'_N</code>。它也还没有把 softmax 输出和后面的 <code>V</code> 加权累加融合起来：如果把整行概率写成 <code>A = softmax(QK^T)</code> 再去乘 <code>V</code>，在单个 head、单条长度为 <code>N</code> 的序列视角下，仍然会有完整 <code>N x N</code> 的中间矩阵问题。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-multi-pass-self-attention">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-multi-pass-self-attention">
                             <h4 class="arch-feature-title">Multi-pass Self-Attention</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>Online Softmax 已经把 Safe Softmax 的前两遍合并了，但 Self-Attention 的目标不是输出概率行 <code>a</code>，而是输出：</p>
+                            <p>Online Softmax 已经把 Safe Softmax 的前两次遍历合并了，但 Self-Attention 的目标不是输出概率行 <code>a</code>，而是输出：</p>
                                     <div class="math-block">\[
 O = \operatorname{softmax}(QK^T)V
 \]</div>
@@ -3097,7 +3496,7 @@ O = \operatorname{softmax}(QK^T)V
                                     <li><code>a_i</code>：当前 query 对第 <code>i</code> 个 token 的 attention weight。</li>
                                     <li><code>o_i</code>：只累加到前 <code>i</code> 个 value 后的部分输出。</li>
                                     </ul>
-                                    <p>第一遍循环只做 Online Softmax 的统计量，不产生最终输出：</p>
+                                    <p>第一次遍历只做 Online Softmax 的统计量，不产生最终输出：</p>
                                     <div class="math-block">\[
 x_i = Q[k,:]K^T[:,i]
 \]</div>
@@ -3110,7 +3509,7 @@ d&#x27;_{i-1}e^{m_{i-1}-m_i}
 +
 e^{x_i-m_i}
 \]</div>
-                                    <p>扫完整行后，<code>m_N</code> 和 <code>d'_N</code> 才是最终 softmax 所需的归一化状态。第二遍循环再重新扫描 key/value，计算概率和输出：</p>
+                                    <p>遍历完整行后，<code>m_N</code> 和 <code>d'_N</code> 才是最终 softmax 所需的归一化状态。第二次遍历再重新扫描 key/value，计算概率和输出：</p>
                                     <div class="math-block">\[
 a_i =
 \frac{e^{x_i-m_N}}{d&#x27;_N}
@@ -3122,7 +3521,7 @@ o_i = o_{i-1} + a_iV[i,:]
                                     <div class="math-block">\[
 O[k,:] = o_N
 \]</div>
-                                    <p>这就是 Multi-pass 的含义：虽然没有显式保存完整的 <code>A = softmax(QK^T)</code>，但仍然需要先完成第一遍，拿到最终 <code>m_N</code> 和 <code>d'_N</code>，第二遍才能计算 <code>a_i</code> 并累加 <code>o_i</code>。原因是 <code>a_i</code> 依赖全行最终归一化状态：</p>
+                                    <p>这就是 Multi-pass 的含义：虽然没有显式保存完整的 <code>A = softmax(QK^T)</code>，但仍然需要先完成第一次遍历，拿到最终 <code>m_N</code> 和 <code>d'_N</code>，第二次遍历才能计算 <code>a_i</code> 并累加 <code>o_i</code>。原因是 <code>a_i</code> 依赖全行最终归一化状态：</p>
                                     <div class="math-block">\[
 a_i =
 \frac{e^{x_i-m_N}}{d&#x27;_N}
@@ -3134,7 +3533,7 @@ o_{i-1}
 +
 \frac{e^{x_i-m_N}}{d&#x27;_N}V[i,:]
 \]</div>
-                                    <p>右侧仍然依赖 <code>m_N</code> 和 <code>d'_N</code>，而这两个量只有第一遍扫完整行之后才知道。因此 Multi-pass Self-Attention 还不能把 score、softmax 和 <code>V</code> 的加权累加放进同一个循环。</p>
+                                    <p>右侧仍然依赖 <code>m_N</code> 和 <code>d'_N</code>，而这两个量只有第一次遍历完整行之后才知道。因此 Multi-pass Self-Attention 还不能把 score、softmax 和 <code>V</code> 的加权累加放进同一个循环。</p>
                                     <p>接下来做的变换和 Online Softmax 很像：不要直接维护依赖最终 <code>m_N/d'_N</code> 的 <code>o_i</code>，而是构造一个随当前前缀状态变化的代理输出：</p>
                                     <div class="math-block">\[
 o&#x27;_i =
@@ -3152,11 +3551,15 @@ o&#x27;_i =
 +
 \frac{e^{x_i-m_i}}{d&#x27;_i}V[i,:]
 \]</div>
-                                    <p>这一步说明了 FlashAttention 为什么可能做到单次扫描：如果同时维护 <code>m_i</code>、<code>d'_i</code> 和 <code>o'_i</code>，每来一个新的 key/value，就可以立刻把它合并到当前输出状态里，而不必等到最终 <code>m_N/d'_N</code> 已知后再回头扫第二遍。</p>
+                                    <p>这一步说明了 FlashAttention 为什么可能做到单次遍历：如果同时维护 <code>m_i</code>、<code>d'_i</code> 和 <code>o'_i</code>，每来一个新的 key/value，就可以立刻把它合并到当前输出状态里，而不必等到最终 <code>m_N/d'_N</code> 已知后再回头做第二次遍历。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-flashattention">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-flashattention">
                             <h4 class="arch-feature-title">FlashAttention</h4>
+                        <div class="full-width-figure">
+                            <img src="images/flashattn_banner.jpg" alt="FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">FlashAttention 将 Attention 计算按 block 重排，让 score、softmax 和 V 加权累加尽量在片上完成，避免完整中间矩阵反复进出 HBM。</div>
+                        </div>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>上一节已经构造出代理输出 <code>o'_i</code>，并且它满足两个条件：</p>
                                     <ul class="arch-list">
@@ -3202,13 +3605,13 @@ o&#x27;_i =
                                     <div class="math-block">\[
 \frac{e^{x_i-m_i}}{d&#x27;_i}V[i,:]
 \]</div>
-                                    <p>这样，每看到一个新的 key/value，就完成三件事：更新最大值、更新分母、更新输出。整行不再需要先生成 <code>A[k,:] = softmax(Q[k,:]K^T)</code>，也不需要第二遍回头把概率乘以 <code>V</code>。</p>
-                                    <p>这里也解释了一个容易混淆的点，讲得直白一点：Online Softmax 的第一遍其实只是“把账记完”。它先把整行的最大值和分母算出来，等这两个全局量确定后，第二遍才能把每个位置真正换算成 softmax 概率。所以它虽然把“找最大值”和“累分母”合并了，最后还是要再扫一遍来产出概率。</p>
-                                    <p>FlashAttention 走得更远一点。它不先把整行概率全部算出来，而是直接盯着最终输出。每扫到一个新的 key/value，就顺手把这部分 value 对输出的贡献加进去，旧输出也一起按新的 softmax 尺度调整好。这样只关心最终输出时，每个 key/value 看一次就够；如果还想显式写出完整概率矩阵，那自然又要额外多走一遍。</p>
+                                    <p>这样，每看到一个新的 key/value，就完成三件事：更新最大值、更新分母、更新输出。整行不再需要先生成 <code>A[k,:] = softmax(Q[k,:]K^T)</code>，也不需要第二次遍历回头把概率乘以 <code>V</code>。</p>
+                                    <p>这里也解释了一个容易混淆的点，讲得直白一点：Online Softmax 的第一次遍历其实只是“把账记完”。它先把整行的最大值和分母算出来，等这两个全局量确定后，第二次遍历才能把每个位置真正换算成 softmax 概率。所以它虽然把“找最大值”和“累分母”合并了，最后还是要再遍历一次来产出概率。</p>
+                                    <p>FlashAttention 走得更远一点。它不先把整行概率全部算出来，而是直接盯着最终输出。每遍历到一个新的 key/value，就顺手把这部分 value 对输出的贡献加进去，旧输出也一起按新的 softmax 尺度调整好。这样只关心最终输出时，每个 key/value 看一次就够；如果还想显式写出完整概率矩阵，那自然又要额外多遍历一次。</p>
                                     <p>这个版本仍然是“单行、逐元素”的说明。它展示的是 FlashAttention 的核心递推，而不是最终 GPU kernel 的形态。实际 GPU 上会把多个 <code>x_i</code> 合成一个 tile 向量来处理，并把 <code>Q/K/V/O/m/d'</code> 的状态放到 SRAM/shared memory 和寄存器中。下一节的 tiling 版本就是把上面的逐元素递推改写成块级递推。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-tiled-algorithm-flashattention-tiling">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-tiled-algorithm-flashattention-tiling">
                             <h4 class="arch-feature-title">FlashAttention (Tiling)</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>上面的 FlashAttention 递推仍然是逐元素扫描。tiling 版本先固定第 <code>k</code> 个 query 行，然后把这一行要扫描的 <code>K/V</code> 序列按 tile 切开。这里先讲单行按 tile 扫描的形式，再在下一章过渡到工程 kernel 里的多 query 行并行处理。</p>
@@ -3291,15 +3694,15 @@ o&#x27;_{\#\text{tiles}}
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--flashattention-flow arch-section-anchor" id="llm-flashattention-v1-flashattention-flow">
+                        <div class="arch-extra-section arch-extra-section--flashattention-flow arch-section-anchor" id="llm-flashattention-flashattention-flow">
                             <h3 class="arch-sub-title">FlashAttention 流程</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>前面的推导已经把数学关系讲清楚了，这一节只看 kernel 里这些状态怎么流动。可以把它理解成三件事：前向时边扫边把 <code>m/d'/O</code> 留下来，反向时按 tile 重算局部 score，最后用更小的行级状态换掉整行概率矩阵。</p>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-forward-scan">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-flashattention-flow-forward-scan">
                             <h4 class="arch-feature-title">前向扫描</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>FlashAttention-V1 的前向可以理解成一层沿序列方向扫过去的循环：每次拿进一个 <code>K/V</code> tile，就用它去更新当前 <code>Q/O</code> block 的行级状态。局部 score、局部 softmax 和局部 <code>V</code> 累加都在片上完成，算完就丢；真正保留下来的只有还能继续往下接着算的 <code>O</code>、<code>m</code> 和 <code>d'</code>。</p>
+                            <p>FlashAttention 的前向可以理解成一层沿序列方向扫过去的循环：每次拿进一个 <code>K/V</code> tile，就用它去更新当前 <code>Q/O</code> block 的行级状态。局部 score、局部 softmax 和局部 <code>V</code> 累加都在片上完成，算完就丢；真正保留下来的只有还能继续往下接着算的 <code>O</code>、<code>m</code> 和 <code>d'</code>。</p>
                                     <p>初始化很简单：</p>
                                     <ul class="arch-list">
                                     <li><code>O = 0</code>，说明这行还没累加任何 <code>V</code>。</li>
@@ -3309,7 +3712,7 @@ o&#x27;_{\#\text{tiles}}
                                     <p>所以前向阶段的重点不是“先算完什么再算什么”，而是“每来一块就顺手更新一块”。这样 <code>S</code> 和 <code>P</code> 不会在 HBM 里待很久，片上只保留每行必要的状态。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-forward-saved-state">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-flashattention-flow-forward-saved-state">
                             <h4 class="arch-feature-title">前向保存内容</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>前向结束后，反向真正需要保存的也很少：</p>
@@ -3321,58 +3724,25 @@ o&#x27;_{\#\text{tiles}}
                                     <p>说白了，FlashAttention 保存的不是一整张大表，而是“把那张表重建回来”所需要的行级摘要。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-backward">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-flashattention-flow-backward">
                             <h4 class="arch-feature-title">反向传播</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>反向也一样，不去读完整 <code>P</code>，而是重新加载对应的 <code>Q/K/V</code> tile，再用前向保存的行级状态把这块概率恢复出来。恢复出来之后，先算 <code>dV</code>，再沿着 softmax 的行级公式往回推 <code>dQ</code> 和 <code>dK</code>。每算完一个 tile 就把它放下，不需要让整行概率常驻显存。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-flashattention-flow-why-recompute-pays-off">
-                            <h4 class="arch-feature-title">为什么重算划算</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <p>多做一点局部矩阵乘和指数计算，换掉的是 <code>N x N</code> 中间矩阵的读写。对长序列来说，搬运这些大矩阵比重算更贵，所以 FlashAttention 的收益主要来自少写、少读、少让中间结果落到 HBM。序列越长，这个差距越明显。</p>
-                        </div>
-                        </div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--use-cases arch-section-anchor" id="llm-flashattention-v1-use-cases">
-                            <h3 class="arch-sub-title">适用场景</h3>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-use-cases-where-it-helps">
-                            <h4 class="arch-feature-title">什么时候收益明显</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <ul class="arch-list">
-                                    <li>长序列训练和推理：序列越长，<code>N x N</code> 中间矩阵越大，IO 优化越明显。</li>
-                                    <li>head dimension 适配 kernel 的场景：常见的 64、128 等维度更容易跑到优化路径。</li>
-                                    <li>A100/H100 等高带宽 GPU：FlashAttention 能更好地把 SRAM/shared memory 和 Tensor Core 协同起来。</li>
-                                    <li>需要 exact attention 的模型：相比近似 attention，它不改变 attention 数学结果，更容易替换标准实现。</li>
-                                    </ul>
-                        </div>
-                        </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-use-cases-limits">
-                            <h4 class="arch-feature-title">需要注意的边界</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <ul class="arch-list">
-                                    <li>短序列或小 batch：kernel launch、调度和其他算子可能占主要时间，收益不一定明显。</li>
-                                    <li>非典型 mask 或 shape：如果 kernel 没有覆盖对应模式，可能回退到普通 attention。</li>
-                                    <li>端到端速度：Attention 变快不代表整个模型同比例变快，layernorm、MLP、通信和 KV cache 管理也会影响总耗时。</li>
-                                    <li>数值细节：虽然是 exact attention，混合精度、mask、dropout 和累加路径仍然需要和框架实现对齐。</li>
-                                    </ul>
-                        </div>
-                        </div>
-                        </div>
-
-
-                        <div class="arch-extra-section arch-extra-section--engineering-usage arch-section-anchor" id="llm-flashattention-v1-engineering-usage">
+                        <div class="arch-extra-section arch-extra-section--engineering-usage arch-section-anchor" id="llm-flashattention-engineering-usage">
                             <h3 class="arch-sub-title">工程用法</h3>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-fusion-before-after">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-engineering-usage-fusion-before-after">
                             <h4 class="arch-feature-title">融合前后对比</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <p>融合前，scaled dot-product attention 可以拆成 <code>matmul -> scale -> mask -> softmax -> matmul</code>。这些算子各自执行时，中间矩阵很容易写回 HBM。融合后，FlashAttention-V1 把它们组织成一个 IO-aware kernel：score 小块刚算出来，就立刻做 mask、online softmax 和 <code>V</code> 的加权累积。</p>
+                            <p>融合前，scaled dot-product attention 可以拆成 <code>matmul -> scale -> mask -> softmax -> matmul</code>。这些算子各自执行时，中间矩阵很容易写回 HBM。融合后，FlashAttention 把它们组织成一个 IO-aware kernel：score 小块刚算出来，就立刻做 mask、online softmax 和 <code>V</code> 的加权累积。</p>
                                     <p>这可以理解为“流水线换位置”：不是先把所有半成品堆到仓库，再让下一个工序取走；而是每个小块在同一个工位上尽量加工完，只把必要的最终结果和少量统计量留下。</p>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-pytorch-usage">
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-engineering-usage-pytorch-usage">
                             <h4 class="arch-feature-title">PyTorch 调用形态</h4>
                         <div class="arch-notes" style="margin-top:12px">
                             <p>现代框架通常会在 <code>scaled_dot_product_attention</code> 或上层库中自动选择 FlashAttention 类 kernel。工程上更常见的做法不是手写 CUDA，而是保证 dtype、mask、head dimension 和设备满足 kernel 条件。</p>
@@ -3391,29 +3761,31 @@ v = torch.randn(batch, heads, seq_len, head_dim, device=&quot;cuda&quot;, dtype=
 out = F.scaled_dot_product_attention(q, k, v, is_causal=True)</code></pre></div>
                         </div>
                         </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-standard-attention-difference">
-                            <h4 class="arch-feature-title">与普通 Attention 的差异</h4>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-engineering-usage-cuda-flashattention">
+                            <h4 class="arch-feature-title">CUDA 手搓 FlashAttention 示例</h4>
                         <div class="arch-notes" style="margin-top:12px">
-                            <div class="arch-code-block"><div class="arch-code-label">PYTHON</div><pre><code class="language-python"># 普通写法会显式产生 scores 和 probs 这两个 N x N 中间矩阵。
-scores = q @ k.transpose(-2, -1) * scale
-probs = torch.softmax(scores, dim=-1)
-out = probs @ v
-
-# FlashAttention 的 kernel 会把上面三步融合到分块扫描里。
-# 关键不是换一个 API，而是 kernel 内部不再物化完整 scores/probs。</code></pre></div>
-                        </div>
-                        </div>
-                        <div class="arch-feature-section arch-section-anchor" id="llm-flashattention-v1-engineering-usage-cuda-fa1">
-                            <h4 class="arch-feature-title">CUDA 手搓 FA1 示例</h4>
-                        <div class="arch-notes" style="margin-top:12px">
-                            <p>下面是一个教学版 CUDA kernel，用来展示 FA1 的核心状态更新。它没有调用 FlashAttention 库，也没有写完整的 <code>scores</code> 或 <code>probs</code> 矩阵。为了让逻辑清楚，代码故意写成“一个 CUDA block 处理一行、一个线程做主要计算”的形式；真实高性能实现会把 dot product、max/sum 归约和 <code>V</code> 累加拆给一个 warp 或一个 CTA 并行完成。</p>
+                            <p>下面这个版本展示一个 CTA 处理一个 <code>Q</code> block 的写法。它没有调用 FlashAttention 库，也没有写完整的 <code>scores</code> 或 <code>probs</code> 矩阵；<code>scores</code> 只在当前 <code>K/V</code> tile 内短暂存在，<code>m</code>、<code>d</code> 和 <code>acc</code> 才是跨 tile 保留下来的状态。代码省略了向量化 load、warp-level reduce、double buffering 和 Tensor Core 路径，但线程组织已经按块级 kernel 的方式展开。</p>
                                     <div class="arch-code-block"><div class="arch-code-label">CUDA</div><pre><code class="language-cuda">#include &lt;cuda_fp16.h&gt;
 #include &lt;math_constants.h&gt;
 
 // Q/K/V/O shape: [B, H, N, D]
-// D 和 BK 用模板参数固定，方便编译器把 acc/scores 放进寄存器或本地数组。
-template&lt;int D, int BK&gt;
-__global__ void fa1_forward_one_row_kernel(
+//
+// CTA 负责的工作:
+// - blockIdx.x: 当前 Q block 的编号，每个 block 覆盖 BQ 行 query。
+// - blockIdx.y: 当前 head。
+// - blockIdx.z: 当前 batch。
+//
+// 线程分配:
+// - 所有线程协作加载 Q block 和 K/V tile 到 shared memory。
+// - 所有线程协作计算 BQ x BK 个 score。
+// - 每个 query 行维护自己的 m / d / acc 状态。
+// - 所有线程协作更新 BQ x D 个输出累加器。
+//
+// 这个骨架刻意保留清晰的 shared memory 数据流。
+// 真正高性能版本会把 dot product 拆到 warp 里，用向量化 load、warp reduce、
+// double buffering 甚至 Tensor Core MMA 来减少串行循环。
+template&lt;int BQ, int BK, int D&gt;
+__global__ void flashattention_forward_cta_kernel(
     const half* __restrict__ Q,
     const half* __restrict__ K,
     const half* __restrict__ V,
@@ -3424,108 +3796,480 @@ __global__ void fa1_forward_one_row_kernel(
     float scale,
     bool causal
 ) {
-    int row = blockIdx.x;
+    int tid = threadIdx.x;
+    int q0 = blockIdx.x * BQ;
     int head = blockIdx.y;
     int batch = blockIdx.z;
-
-    // 教学版只用一个线程说明算法；生产版会用整个 block 协同。
-    if (threadIdx.x != 0) return;
-
     int base = (batch * H + head) * N;
-    const half* q = Q + (base + row) * D;
 
-    float m = -CUDART_INF_F;
-    float d = 0.0f;
-    float acc[D];
+    // q_s: 当前 CTA 负责的 BQ 行 query。
+    // k_s/v_s: 当前扫描到的 K/V tile。
+    // scores: 当前 Q block 和 K tile 形成的 BQ x BK 局部 score。
+    // m/d: 每一行 query 的 online softmax 状态。
+    // acc_scale: 当前 tile 更新时，旧 acc 需要乘的缩放因子。
+    // inv_d: 1 / d_new，给输出阶段算概率权重用。
+    // acc: 当前 Q block 的输出累加器，float 累加后再写回 half。
+    __shared__ half q_s[BQ][D];
+    __shared__ half k_s[BK][D];
+    __shared__ half v_s[BK][D];
+    __shared__ float scores[BQ][BK];
+    __shared__ float m[BQ];
+    __shared__ float d[BQ];
+    __shared__ float acc_scale[BQ];
+    __shared__ float inv_d[BQ];
+    __shared__ float acc[BQ][D];
 
-    #pragma unroll
-    for (int t = 0; t &lt; D; ++t) {
-        acc[t] = 0.0f;
+    // 1) 协作加载 Q block，并初始化 acc。
+    // 这里把 BQ x D 展平成一维，让 CTA 内所有线程按 stride 方式覆盖。
+    // 这种写法比固定某几个线程干某件事更接近实际 kernel 的分配方式。
+    for (int idx = tid; idx &lt; BQ * D; idx += blockDim.x) {
+        int qr = idx / D;
+        int dim = idx % D;
+        int row = q0 + qr;
+
+        q_s[qr][dim] = (row &lt; N)
+            ? Q[(base + row) * D + dim]
+            : __float2half(0.0f);
+        acc[qr][dim] = 0.0f;
     }
 
+    // 2) 每一行 query 初始化自己的 m / d 状态。
+    // m 从 -inf 开始，d 从 0 开始，表示还没有看过任何 key。
+    for (int qr = tid; qr &lt; BQ; qr += blockDim.x) {
+        m[qr] = -CUDART_INF_F;
+        d[qr] = 0.0f;
+        acc_scale[qr] = 0.0f;
+        inv_d[qr] = 0.0f;
+    }
+    __syncthreads();
+
+    // 3) 沿 K/V 方向逐 tile 扫描。
+    // 每次加载 BK 个 key/value，与当前 BQ 个 query 形成一个 BQ x BK 的 score tile。
     for (int k0 = 0; k0 &lt; N; k0 += BK) {
-        float scores[BK];
-        float m_local = -CUDART_INF_F;
+        // 3.1) 协作加载当前 K/V tile。
+        // idx 覆盖 BK x D，每个线程负责若干个元素。
+        // 越界位置填 0，后面的 mask 会让这些位置没有 softmax 贡献。
+        for (int idx = tid; idx &lt; BK * D; idx += blockDim.x) {
+            int kj = idx / D;
+            int dim = idx % D;
+            int col = k0 + kj;
 
-        #pragma unroll
-        for (int j = 0; j &lt; BK; ++j) {
-            int col = k0 + j;
+            k_s[kj][dim] = (col &lt; N)
+                ? K[(base + col) * D + dim]
+                : __float2half(0.0f);
+            v_s[kj][dim] = (col &lt; N)
+                ? V[(base + col) * D + dim]
+                : __float2half(0.0f);
+        }
+        __syncthreads();
+
+        // 3.2) 协作计算 BQ x BK 个 score。
+        // 每个 score 对应一个 query row 和一个 key col。
+        // 这里一个线程负责一个 score 的 D 维 dot product；
+        // 工程优化版通常会把这个 dot product 再拆给多个线程或 Tensor Core。
+        for (int idx = tid; idx &lt; BQ * BK; idx += blockDim.x) {
+            int qr = idx / BK;
+            int kj = idx % BK;
+            int row = q0 + qr;
+            int col = k0 + kj;
+
             float s = -CUDART_INF_F;
-
-            if (col &lt; N &amp;&amp; (!causal || col &lt;= row)) {
+            if (row &lt; N &amp;&amp; col &lt; N &amp;&amp; (!causal || col &lt;= row)) {
                 s = 0.0f;
-                const half* k = K + (base + col) * D;
-
                 #pragma unroll
-                for (int t = 0; t &lt; D; ++t) {
-                    s += __half2float(q[t]) * __half2float(k[t]);
+                for (int dim = 0; dim &lt; D; ++dim) {
+                    s += __half2float(q_s[qr][dim]) * __half2float(k_s[kj][dim]);
                 }
                 s *= scale;
             }
-
-            scores[j] = s;
-            m_local = fmaxf(m_local, s);
+            scores[qr][kj] = s;
         }
+        __syncthreads();
 
-        float m_new = fmaxf(m, m_local);
-        float old_scale = (m == -CUDART_INF_F) ? 0.0f : expf(m - m_new);
-
-        float d_new = d * old_scale;
-        #pragma unroll
-        for (int j = 0; j &lt; BK; ++j) {
-            d_new += expf(scores[j] - m_new);
-        }
-
-        float acc_old_scale = (d_new == 0.0f) ? 0.0f : (d * old_scale) / d_new;
-        #pragma unroll
-        for (int t = 0; t &lt; D; ++t) {
-            acc[t] *= acc_old_scale;
-        }
-
-        #pragma unroll
-        for (int j = 0; j &lt; BK; ++j) {
-            int col = k0 + j;
-            if (col &gt;= N || (causal &amp;&amp; col &gt; row)) continue;
-
-            float p = expf(scores[j] - m_new) / d_new;
-            const half* v = V + (base + col) * D;
-
-            #pragma unroll
-            for (int t = 0; t &lt; D; ++t) {
-                acc[t] += p * __half2float(v[t]);
+        // 3.3) 每一行 query 更新自己的 m / d。
+        // 这里用 qr 维度并行：不同线程处理不同 query 行。
+        // 每行内部的 BK 归约写成串行循环，便于展示状态更新；
+        // 生产版可把这部分换成 warp reduce 或 block reduce。
+        for (int qr = tid; qr &lt; BQ; qr += blockDim.x) {
+            int row = q0 + qr;
+            if (row &gt;= N) {
+                acc_scale[qr] = 0.0f;
+                inv_d[qr] = 0.0f;
+                continue;
             }
-        }
 
-        m = m_new;
-        d = d_new;
+            float m_local = -CUDART_INF_F;
+            for (int j = 0; j &lt; BK; ++j) {
+                m_local = fmaxf(m_local, scores[qr][j]);
+            }
+
+            float m_old = m[qr];
+            float d_old = d[qr];
+            float m_new = fmaxf(m_old, m_local);
+            float old_scale = (m_old == -CUDART_INF_F) ? 0.0f : expf(m_old - m_new);
+
+            float d_new = d_old * old_scale;
+            for (int j = 0; j &lt; BK; ++j) {
+                d_new += expf(scores[qr][j] - m_new);
+            }
+
+            // 旧 acc 的缩放因子，以及新分母的倒数。
+            // 后面的输出更新阶段会用它们把旧输出和当前 tile 贡献合并起来。
+            acc_scale[qr] = (d_new == 0.0f) ? 0.0f : (d_old * old_scale) / d_new;
+            inv_d[qr] = (d_new == 0.0f) ? 0.0f : 1.0f / d_new;
+            m[qr] = m_new;
+            d[qr] = d_new;
+        }
+        __syncthreads();
+
+        // 3.4) 协作更新 BQ x D 个输出累加器。
+        // 每个线程负责若干个 (query row, output dim)。
+        // 对每个输出维度，先缩放旧 acc，再把当前 BK 个 value 的贡献加进来。
+        for (int idx = tid; idx &lt; BQ * D; idx += blockDim.x) {
+            int qr = idx / D;
+            int dim = idx % D;
+            int row = q0 + qr;
+            if (row &gt;= N) continue;
+
+            float out = acc[qr][dim] * acc_scale[qr];
+            for (int j = 0; j &lt; BK; ++j) {
+                int col = k0 + j;
+                if (col &lt; N &amp;&amp; (!causal || col &lt;= row)) {
+                    float p = expf(scores[qr][j] - m[qr]) * inv_d[qr];
+                    out += p * __half2float(v_s[j][dim]);
+                }
+            }
+            acc[qr][dim] = out;
+        }
+        __syncthreads();
     }
 
-    half* out = O + (base + row) * D;
-    #pragma unroll
-    for (int t = 0; t &lt; D; ++t) {
-        out[t] = __float2half_rn(acc[t]);
+    // 4) 写回 O block。
+    // 每个线程负责若干个输出元素，acc 是 float，最终转回 half。
+    for (int idx = tid; idx &lt; BQ * D; idx += blockDim.x) {
+        int qr = idx / D;
+        int dim = idx % D;
+        int row = q0 + qr;
+        if (row &lt; N) {
+            O[(base + row) * D + dim] = __float2half_rn(acc[qr][dim]);
+        }
     }
 }
 
 // 示例 launch:
-// dim3 grid(N, H, B);
-// fa1_forward_one_row_kernel&lt;64, 64&gt;&lt;&lt;&lt;grid, 1&gt;&gt;&gt;(Q, K, V, O, B, H, N, 1.0f / sqrtf(64.0f), true);</code></pre></div>
-                                    <p>这段代码最重要的不是性能，而是结构：<code>scores</code> 只在当前 <code>K/V</code> block 内短暂存在；<code>m</code>、<code>d</code> 和 <code>acc</code> 才是跨 block 保留下来的状态。也就是说，它手工实现的是前面推导的那条在线递推，而不是先调用一个现成 FA kernel。</p>
+// dim3 grid((N + BQ - 1) / BQ, H, B);
+// int threads = 256;
+// flashattention_forward_cta_kernel&lt;4, 64, 64&gt;&lt;&lt;&lt;grid, threads&gt;&gt;&gt;(
+//     Q, K, V, O, B, H, N, 1.0f / sqrtf(64.0f), true
+// );</code></pre></div>
+                                    <p>这段代码的关键点是：CTA 不保存完整 <code>N x N</code> 的 score/probability，而是只保留当前 <code>BQ x BK</code> 的局部 <code>scores</code>。每个 query 行的 <code>m/d/acc</code> 会跨越多个 <code>K/V</code> tile 一直更新，直到整行扫描结束。真实 FlashAttention kernel 会把这里的串行 dot product 和行内归约继续拆到 warp、向量化 load 和更细的 shared memory layout 里，但核心状态流动就是这个结构。</p>
                         </div>
                         </div>
                         </div>
 
 
-                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="llm-flashattention-v1-references">
+                        <div class="arch-extra-section arch-extra-section--references arch-section-anchor" id="llm-flashattention-references">
                             <h3 class="arch-sub-title">References</h3>
                         <div class="arch-notes" style="margin-top:12px">
                             <ul class="arch-list">
-                                    <li><a href="https://mp.weixin.qq.com/s/jPJuF2BCymNJqdzsQbPy1w" target="_blank">FlashAttention-V1 微信文章</a></li>
+                                    <li><a href="https://mp.weixin.qq.com/s/jPJuF2BCymNJqdzsQbPy1w" target="_blank">FlashAttention 微信文章</a></li>
                                     <li><a href="https://courses.cs.washington.edu/courses/cse599m/23sp/notes/flashattn.pdf" target="_blank">CSE 599M Notes: From Online Softmax to FlashAttention</a></li>
                                     <li><a href="https://arxiv.org/abs/2205.14135" target="_blank">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</a></li>
                                     <li><a href="https://openreview.net/forum?id=H4DqfPSibmx" target="_blank">OpenReview: FlashAttention</a></li>
                                     <li><a href="https://github.com/Dao-AILab/flash-attention" target="_blank">Dao-AILab flash-attention GitHub</a></li>
                                     </ul>
+                        </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="llm-2-pagedattention" class="content-section">
+                <h1 class="section-title">vLLM-PagedAttention</h1>
+                <div class="page-toc">
+                    <h3>目录</h3>
+                    <ul>
+                        <li><a href="#llm-pagedattention">概览</a></li>
+                        <li><a href="#llm-pagedattention-vllm-pagedattention">vLLM-PagedAttention</a></li>
+                        <li><a href="#llm-pagedattention-motivation">Motivation</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-motivation-kv-cache">KV Cache</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-motivation-fragmentation">Fragmentation</a></li>
+                        <li><a href="#llm-pagedattention-paging">Paging</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-paging-block">Block</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-paging-block-table">Block Table</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-paging-allocation">Allocation</a></li>
+                        <li><a href="#llm-pagedattention-algorithm">Algorithm</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-algorithm-pagedattention">PagedAttention</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-algorithm-access">Access</a></li>
+                        <li><a href="#llm-pagedattention-decoding">Decoding</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-decoding-prefill">Prefill</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-decoding-decode">Decode</a></li>
+                        <li><a href="#llm-pagedattention-implementation">Implementation</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-implementation-kernel">Kernel</a></li>
+                        <li class="toc-child"><a href="#llm-pagedattention-implementation-block-size">Block Size</a></li>
+                        <li><a href="#llm-pagedattention-summary">Summary</a></li>
+                    </ul>
+                </div>
+
+                <div class="arch-timeline" style="margin-top:32px">
+
+                    <div class="arch-gen llm-article" id="llm-pagedattention">
+                        <div class="arch-gen-header">
+                            <h2>vLLM-PagedAttention</h2>
+                            <span class="paper-tag">2023</span>
+                            <span class="paper-tag">KV Cache</span>
+                            <span class="paper-tag">Paging</span>
+                            <span class="paper-tag">vLLM</span>
+                        </div>
+
+                        <div class="arch-extra-section arch-extra-section--vllm-pagedattention arch-section-anchor" id="llm-pagedattention-vllm-pagedattention">
+                            <h3 class="arch-sub-title">vLLM-PagedAttention</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p><code>PagedAttention</code> 讨论的是一个很具体的问题：在 LLM 推理服务里，KV Cache 该怎么放进 GPU 显存。</p>
+                                    <p>普通 attention 的数学结果不变。每个 query token 仍然要和历史 <code>K/V</code> 做注意力计算；变化的是历史 <code>K/V</code> 的存储方式。vLLM 把每个序列的 KV Cache 切成固定大小的 <code>KV block</code>，逻辑上连续，物理上可以分散在不同显存位置。attention kernel 通过 <code>block table</code> 找到这些物理 block，再逐块读取。</p>
+                                    <p>所以它的核心不是“少算 attention”，而是让 KV Cache 像操作系统分页一样被按需分配、按块访问、按块释放。这样可以避免为每个请求提前预留一整段最大长度缓存，也能把碎片浪费控制在很小范围内。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">逻辑 KV blocks:
+block 0 -&gt; block 1 -&gt; block 2 -&gt; block 3
+
+物理 KV blocks:
+block 0 -&gt; physical block 7
+block 1 -&gt; physical block 1
+block 2 -&gt; physical block 3
+block 3 -&gt; physical block 9</code></pre></div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--motivation arch-section-anchor" id="llm-pagedattention-motivation">
+                            <h3 class="arch-sub-title">Motivation</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-motivation-kv-cache">
+                            <h4 class="arch-feature-title">KV Cache</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>LLM 在 <code>Prefill</code> 阶段会为输入 tokens 计算每一层的 <code>K/V</code>，并把它们保存下来。之后进入 <code>Decode</code> 阶段，每生成一个新 token，都要读取之前保存的历史 <code>K/V</code>。</p>
+                                    <p>如果一个请求有很长的 prompt，KV Cache 会很大；如果同一张 GPU 同时服务很多请求，每个请求又都有自己的历史 KV。更麻烦的是，请求长度和最终生成长度都不固定：</p>
+                                    <ul class="arch-list">
+                                    <li>有的请求只生成几十个 tokens。</li>
+                                    <li>有的请求可能生成上千个 tokens。</li>
+                                    <li>有的请求很快结束，有的请求会在 batch 里停留很久。</li>
+                                    </ul>
+                                    <p>因此，KV Cache 管理不是一个简单的静态数组问题，而是一个动态增长、动态释放、长度差异很大的显存管理问题。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-motivation-fragmentation">
+                            <h4 class="arch-feature-title">Fragmentation</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>旧方案通常把一个请求的 KV Cache 当成一段连续显存来管理。为了避免生成到一半没地方放，系统会按最大可能长度提前预留空间。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">请求 A: 预留 4096 tokens, 实际使用 300
+请求 B: 预留 4096 tokens, 实际使用 1200
+请求 C: 预留 4096 tokens, 实际使用 50</code></pre></div>
+                                    <p>这会带来三类浪费：</p>
+                                    <ul class="arch-list">
+                                    <li><code>reserved slots</code>：未来可能会用到，所以先占住，但当前不能给别的请求用。</li>
+                                    <li><code>internal fragmentation</code>：请求结束后才发现这段预留空间根本没用完。</li>
+                                    <li><code>external fragmentation</code>：显存里有零散空洞，但拼不出新的连续大块。</li>
+                                    </ul>
+                        </div>
+                        <div class="full-width-figure">
+                            <img src="images/pagedattention_fragmentation_redraw.png" alt="连续预留式 KV Cache 管理会同时产生 reserved slots、internal fragmentation 和 external fragmentation。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">连续预留式 KV Cache 管理会同时产生 reserved slots、internal fragmentation 和 external fragmentation。</div>
+                        </div>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>上图里的每个槽位代表一个 token 对应的 KV Cache。注意，同一个 token 文本出现在不同位置时，KV Cache 也可能不同，因为它依赖所在上下文和位置。</p>
+                                    <p>PagedAttention 要解决的正是这类浪费：不要为完整最大长度提前拿一整段连续显存，而是随着序列增长逐块分配。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--paging arch-section-anchor" id="llm-pagedattention-paging">
+                            <h3 class="arch-sub-title">Paging</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-paging-block">
+                            <h4 class="arch-feature-title">Block</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p><code>KV block</code> 是 vLLM 管理 KV Cache 的基本单位。一个 block 可以容纳固定数量 token 的 K/V，比如 16 个 token。</p>
+                                    <p>如果一个序列当前有 40 个 tokens，block size 是 16，那么它只需要 3 个逻辑 block：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 0: 16/16
+block 1: 16/16
+block 2:  8/16</code></pre></div>
+                                    <p>最后一个 block 可能没装满，其他 block 都是满的。因此单个序列的内部浪费最多落在最后一个 block 里。</p>
+                                    <p>对比一下连续预留方式：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">旧方案:
+预留 4096, 实际使用 300, 浪费 3796
+
+PagedAttention:
+实际使用 300, 每 16 个 token 一个 block
+需要 19 个 blocks, 总容量 304, 浪费 4</code></pre></div>
+                                    <p>这就是它能显著降低 KV Cache 浪费的关键。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-paging-block-table">
+                            <h4 class="arch-feature-title">Block Table</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>因为逻辑上相邻的 KV blocks 在物理显存里可以不连续，vLLM 需要一张 <code>block table</code> 记录映射关系。</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">逻辑 block id -&gt; 物理 block id</code></pre></div>
+                                    <p>例如一个请求逻辑上看到的是连续缓存：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">logical block 0 -&gt; logical block 1 -&gt; logical block 2</code></pre></div>
+                                    <p>但真实显存里可能是：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">logical block 0 -&gt; physical block 7
+logical block 1 -&gt; physical block 1
+logical block 2 -&gt; physical block 3</code></pre></div>
+                                    <p>block table 里除了物理 block id，还会记录这个逻辑 block 已经填了多少个槽位。这样 decode 生成新 token 时，vLLM 可以判断是继续写入最后一个 block，还是分配一个新的物理 block。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-paging-allocation">
+                            <h4 class="arch-feature-title">Allocation</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>vLLM 不会在请求开始时为最大序列长度预留完整 KV Cache。它只分配当前需要的 blocks：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">prefill 后有 7 个 tokens, block size = 4
+需要 block 0 和 block 1
+
+block 0: 4/4
+block 1: 3/4</code></pre></div>
+                                    <p>下一次 decode 生成一个 token，如果 <code>block 1</code> 还有空位，就直接写进去：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 1: 4/4</code></pre></div>
+                                    <p>再下一次生成新 token 时，最后一个 block 已满，vLLM 才分配新的物理 block：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 2: 1/4</code></pre></div>
+                                    <p>这种按需增长的方式让显存占用接近真实序列长度，而不是接近最大允许长度。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--algorithm arch-section-anchor" id="llm-pagedattention-algorithm">
+                            <h3 class="arch-sub-title">Algorithm</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-algorithm-pagedattention">
+                            <h4 class="arch-feature-title">PagedAttention</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>设 block size 为 <code>B</code>，第 <code>j</code> 个 KV block 包含一段连续逻辑 token 的 key/value：</p>
+                                    <div class="math-block">\[
+K_j = (k_{(j-1)B+1}, \dots, k_{jB}), \qquad
+V_j = (v_{(j-1)B+1}, \dots, v_{jB})
+\]</div>
+                                    <p>对第 <code>i</code> 个 query token，PagedAttention 把普通 attention 按 block 改写。令 <code>B_j</code> 表示第 <code>j</code> 个 block 里实际有效的 token 数，那么第 <code>j</code> 个 block 内第 <code>\ell</code> 个位置的注意力权重为：</p>
+                                    <div class="math-block">\[
+A_{ij,\ell} =
+\frac{\exp(q_i^\top k_{j,\ell}/\sqrt d)}
+{\sum_{t=1}^{\lceil i/B \rceil}\sum_{r=1}^{B_t}
+\exp(q_i^\top k_{t,r}/\sqrt d)}
+\]</div>
+                                    <p>输出仍然是所有历史 value 的加权和：</p>
+                                    <div class="math-block">\[
+o_i =
+\sum_{j=1}^{\lceil i/B \rceil}
+\sum_{\ell=1}^{B_j}
+A_{ij,\ell}v_{j,\ell}
+\]</div>
+                                    <p>这里最容易误解的一点是：block 只是访问单位，不是 softmax 的独立归一化单位。分母仍然覆盖当前 query 能看到的所有历史 tokens，所以结果和普通 attention 一致。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-algorithm-access">
+                            <h4 class="arch-feature-title">Access</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>PagedAttention kernel 的访问路径可以概括成：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">query token
+  -&gt; logical block id
+  -&gt; block table
+  -&gt; physical KV block
+  -&gt; K/V vectors
+  -&gt; attention output</code></pre></div>
+                                    <p>也就是说，kernel 不再假设历史 <code>K/V</code> 是一段连续数组。它会按逻辑 block 顺序遍历历史缓存，每到一个 block，就查表找到对应物理位置，再读取这个 block 里的 key/value。</p>
+                        </div>
+                        <div class="full-width-figure">
+                            <img src="images/pagedattention_figure5_redraw.png" alt="PagedAttention 允许逻辑上连续的 KV blocks 存在非连续的物理显存中，kernel 通过 block table 逐块访问。" style="max-width:100%; height:auto;">
+                            <div class="paper-figure-caption">PagedAttention 允许逻辑上连续的 KV blocks 存在非连续的物理显存中，kernel 通过 block table 逐块访问。</div>
+                        </div>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>上图中的 query token 是 <code>forth</code>。它需要关注历史 tokens，但这些 key/value 被放在 <code>Block 0</code>、<code>Block 1</code>、<code>Block 2</code> 中，而且物理位置并不连续。PagedAttention 的作用就是让这种非连续布局仍然可以被 attention kernel 正确访问。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--decoding arch-section-anchor" id="llm-pagedattention-decoding">
+                            <h3 class="arch-sub-title">Decoding</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-decoding-prefill">
+                            <h4 class="arch-feature-title">Prefill</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>在 prefill 阶段，vLLM 会先为 prompt 生成 KV Cache，并把这些 KV 写入逻辑 blocks。假设 block size 为 4，prompt 是：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">Four score and seven years ago our</code></pre></div>
+                                    <p>一共有 7 个 tokens，所以会占用两个逻辑 blocks：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 0: Four, score, and, seven
+block 1: years, ago, our, _</code></pre></div>
+                                    <p>这两个逻辑 blocks 会通过 block table 映射到两个物理 blocks。它们在物理显存中不需要相邻。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-decoding-decode">
+                            <h4 class="arch-feature-title">Decode</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>进入 decode 后，每一步只输入当前新 token，但 attention 仍然要读取历史 KV Cache。</p>
+                                    <p>如果模型生成 <code>fathers</code>，而最后一个 block 还有空位，vLLM 直接把它写进 <code>block 1</code>：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 1: years, ago, our, fathers</code></pre></div>
+                                    <p>如果下一步生成 <code>brought</code>，此时 <code>block 1</code> 已满，vLLM 会分配新的逻辑 block 和新的物理 block：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">block 2: brought, _, _, _</code></pre></div>
+                                    <p>每一步 decode 都会重复这件事：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">1. 为新 token 确认写入位置。
+2. 必要时分配新的物理 KV block。
+3. 更新 block table。
+4. PagedAttention kernel 通过 block table 读取历史 K/V。
+5. 把新 token 的 K/V 写回对应 block。</code></pre></div>
+                                    <p>这就是 PagedAttention 和普通连续 KV Cache 管理最大的区别：请求的逻辑序列可以一直增长，但物理显存只按需要逐块增加。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--implementation arch-section-anchor" id="llm-pagedattention-implementation">
+                            <h3 class="arch-sub-title">Implementation</h3>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-implementation-kernel">
+                            <h4 class="arch-feature-title">Kernel</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p>PagedAttention 的好处不是免费的。连续 KV Cache 里，kernel 可以从一个起始地址一路顺序读：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">start -&gt; token 0 -&gt; token 1 -&gt; token 2 -&gt; ...</code></pre></div>
+                                    <p>PagedAttention 里，访存路径多了一层间接映射：</p>
+                                    <div class="arch-code-block"><div class="arch-code-label">TEXT</div><pre><code class="language-text">logical block -&gt; block table -&gt; physical block -&gt; K/V</code></pre></div>
+                                    <p>这会带来查表、地址计算、非连续访存等开销。因此 kernel 需要尽量把一个 block 内的访问做得连续、高效，并减少 block table 查询带来的额外成本。</p>
+                        </div>
+                        </div>
+                        <div class="arch-feature-section arch-section-anchor" id="llm-pagedattention-implementation-block-size">
+                            <h4 class="arch-feature-title">Block Size</h4>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p><code>block size</code> 是显存浪费和 kernel 开销之间的折中。</p>
+                                    <p>block size 太小：</p>
+                                    <ul class="arch-list">
+                                    <li>最后一个 block 的浪费更少。</li>
+                                    <li>分配粒度更细。</li>
+                                    <li>block 数量更多。</li>
+                                    <li>block table 更大。</li>
+                                    <li>kernel 查表次数更多。</li>
+                                    </ul>
+                                    <p>block size 太大：</p>
+                                    <ul class="arch-list">
+                                    <li>block 数量更少。</li>
+                                    <li>block table 和查表开销更低。</li>
+                                    <li>一个 block 内更容易做连续访问。</li>
+                                    <li>最后一个 block 的潜在浪费更大。</li>
+                                    </ul>
+                                    <p>所以 PagedAttention 不是简单地把 block 切得越小越好。它要在显存利用率和 kernel 效率之间取一个平衡点。</p>
+                        </div>
+                        </div>
+                        </div>
+
+
+                        <div class="arch-extra-section arch-extra-section--summary arch-section-anchor" id="llm-pagedattention-summary">
+                            <h3 class="arch-sub-title">Summary</h3>
+                        <div class="arch-notes" style="margin-top:12px">
+                            <p><code>PagedAttention</code> 可以总结成一句话：把 KV Cache 从“每个请求一整段连续显存”改成“逻辑连续、物理分页、按需分配的 KV blocks”。</p>
+                                    <p>它真正解决的是 KV Cache 管理问题：</p>
+                                    <ul class="arch-list">
+                                    <li>不提前为最大生成长度预留完整缓存。</li>
+                                    <li>只在需要时分配新的物理 KV block。</li>
+                                    <li>通过 block table 维护逻辑 block 到物理 block 的映射。</li>
+                                    <li>attention 结果保持不变，变化的是 K/V 的访问方式。</li>
+                                    <li>单个请求的内部浪费最多主要落在最后一个 block。</li>
+                                    </ul>
+                                    <p>因此，它能让同样的 GPU 显存容纳更多活跃请求。吞吐提升不是因为模型少算了，而是因为 KV Cache 的显存浪费少了。</p>
                         </div>
                         </div>
 
